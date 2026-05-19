@@ -2,7 +2,7 @@ services:
   api:
     image: retail-system-api:latest
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile
       target: api
     ports:
@@ -12,7 +12,7 @@ services:
   dashboard:
     image: retail-system-dashboard:latest
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile
       target: dashboard
     depends_on:

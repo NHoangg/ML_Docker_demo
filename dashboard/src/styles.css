@@ -13,8 +13,63 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
+}
+
+/* ─── Tab Bar ─────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 6px 6px 0 0;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: -2px;
+  padding: 10px 18px;
+  transition: color 150ms, border-color 150ms;
+}
+
+.tab-btn:hover {
+  color: #1f6f8b;
+}
+
+.tab-btn.active {
+  border-bottom-color: #1f6f8b;
+  color: #1f6f8b;
+}
+
+/* ─── Select input ─────────────────────────────────────────── */
+.field select {
+  border: 1px solid #cdd6dc;
+  border-radius: 6px;
+  color: #14212a;
+  height: 42px;
+  outline: none;
+  padding: 0 12px;
+  width: 100%;
+  background: #fff;
+}
+
+.field select:focus {
+  border-color: #287b8f;
+  box-shadow: 0 0 0 3px rgba(40, 123, 143, 0.16);
+}
+
+/* ─── Pulse animation (realtime indicator) ─────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.4); }
 }
 
 .app-shell {
