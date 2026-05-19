@@ -1,0 +1,22 @@
+services:
+  api:
+    image: retail-system-api:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  dashboard:
+    image: retail-system-dashboard:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: dashboard
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"
+    restart: unless-stopped

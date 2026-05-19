@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+env/
+
+dashboard/node_modules/
+dashboard/dist/
+dashboard/*.log
+
+*.log
+.git/
+.gitignore
