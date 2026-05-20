@@ -1,0 +1,11 @@
+thoi_gian,dong_tien,don_hang,san_pham,khu_vuc,cua_hang,nhom_san_pham
+10,32000,880,1700,Nam,CH3,ThucPham
+11,45000,1100,2200,Trung,CH2,DienTu
+12,50000,1200,2500,Bac,CH1,DienTu
+1,15000,500,1000,Bac,CH1,ThucPham
+2,16000,550,1100,Trung,CH2,GiaDung
+3,20000,600,1200,Nam,CH3,DienTu
+4,25000,700,1300,Bac,CH1,GiaDung
+5,22000,650,1250,Trung,CH2,ThucPham
+6,28000,800,1500,Nam,CH3,DienTu
+7,30000,850,1600,Bac,CH1,DienTu
