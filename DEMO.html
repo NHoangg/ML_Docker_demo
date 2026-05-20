@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự án ML Bán Lẻ - Kịch bản Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <!-- MathJax for rendering LaTeX formulas -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+<style>
+    :root {
+        --bg-color: #f8fafc;
+        --text-color: #1e293b;
+        --primary-color: #0f172a;
+        --accent-color: #2563eb;
+        --border-color: #e2e8f0;
+        --code-bg: #0f172a;
+        --code-text: #f8fafc;
+        --callout-bg: #eff6ff;
+        --callout-border: #3b82f6;
+        --math-bg: #f8fafc;
+        --math-border: #10b981;
+    }
+
+    body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--bg-color);
+        margin: 0;
+        padding: 40px 20px;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+    }
+
+    h1, h2, h3, h4 {
+        color: var(--primary-color);
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    h1 {
+        font-size: 2.25rem;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 0.5rem;
+        margin-top: 0;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.25rem;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+    }
+
+    p {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Command and Code Boxes with relative positioning for copy button */
+    pre {
+        position: relative;
+        background-color: var(--code-bg);
+        color: var(--code-text);
+        padding: 18px 16px 16px 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        margin: 1.5rem 0;
+        border: 1px solid #1e293b;
+        box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.06);
+    }
+
+    code {
+        font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        background-color: #f1f5f9;
+        color: #0f172a;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    pre code {
+        background-color: transparent;
+        color: inherit;
+        padding: 0;
+        border-radius: 0;
+    }
+
+    /* Math Formula Boxes */
+    .math-box {
+        background-color: var(--math-bg);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--math-border);
+        padding: 16px;
+        margin: 1.5rem 0;
+        border-radius: 4px;
+        display: block;
+        overflow-x: auto;
+        text-align: center;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    /* Callout Box */
+    .callout {
+        background-color: var(--callout-bg);
+        border-left: 4px solid var(--callout-border);
+        padding: 16px;
+        margin: 1.5rem 0;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .callout p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Table Styles */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.95rem;
+    }
+
+    th, td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+        background-color: #f8fafc;
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Lists */
+    ul, ol {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        padding-left: 2rem;
+    }
+
+    li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Copy Button Styling */
+    .copy-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background-color: rgba(248, 250, 252, 0.15);
+        color: #cbd5e1;
+        border: 1px solid rgba(248, 250, 252, 0.25);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+        outline: none;
+    }
+
+    .copy-btn:hover {
+        background-color: rgba(248, 250, 252, 0.25);
+        color: #ffffff;
+        border-color: rgba(248, 250, 252, 0.4);
+    }
+
+    .copy-btn.copied {
+        background-color: #10b981;
+        color: #ffffff;
+        border-color: #10b981;
+    }
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 DEMO – Kịch bản chứng minh yêu cầu đề tài (Phiên bản nâng cấp v3.0)</h1>
+<div class="callout"><p><strong>Đề tài 12 – Phân tích và Dự đoán Doanh thu Bán lẻ</strong><br>File này hướng dẫn từng bước demo để chứng minh hệ thống đáp ứng đầy đủ yêu cầu học thuật và thực tiễn, tích hợp các tính năng đổi mới nâng cao.</p></div>
+---
+<h2>✅ Checklist yêu cầu đề tài & Tính năng đổi mới</h2>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Yêu cầu / Tính năng</th>
+      <th>Kịch bản demo</th>
+      <th>Trạng thái</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Tiền xử lý và phân tích dữ liệu bán lẻ</td>
+      <td>[Kịch bản 1](#kịch-bản-1-huấn-luyện-và-đánh-giá-baseline)</td>
+      <td>✅ Hoàn thành</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Xây dựng mô hình dự báo doanh thu (Random Forest)</td>
+      <td>[Kịch bản 1](#kịch-bản-1-huấn-luyện-và-đánh-giá-baseline)</td>
+      <td>✅ R² ≈ 0.9922</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>So sánh Baseline (Linear Regression, Decision Tree)</td>
+      <td>[Kịch bản 1](#kịch-bản-1-huấn-luyện-và-đánh-giá-baseline)</td>
+      <td>✅ Mới</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Trực quan thực nghiệm, sai số & Error Analysis</td>
+      <td>[Kịch bản 4](#kịch-bản-4-đánh-giá-mô-hình--error-analysis-trực-quan)</td>
+      <td>✅ Mới</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>REST API nhận dữ liệu và trả về dự báo kèm XAI</td>
+      <td>[Kịch bản 2](#kịch-bản-2-dự-đoán-đơn-lẻ-qua-api-kèm-xai)</td>
+      <td>✅ Mới</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Dự đoán hàng loạt qua upload CSV</td>
+      <td>[Kịch bản 3](#kịch-bản-3-dự-đoán-hàng-loạt-batch-csv)</td>
+      <td>✅ Hoàn thành</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Triển khai Docker Swarm Cluster & Load Balancing</td>
+      <td>[Kịch bản 6](#kịch-bản-6-docker-swarm--benchmark-hiệu-năng)</td>
+      <td>✅ Hoàn thành</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Chốt kiểm soát chất lượng mô hình (Performance Gate)</td>
+      <td>[Kịch bản 5](#kịch-bản-5-huấn-luyện-tự-thích-ứng-có-gating)</td>
+      <td>✅ Mới</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>Dashboard Realtime cập nhật luồng dữ liệu 3s</td>
+      <td>[Kịch bản 4](#kịch-bản-4-đánh-giá-mô-hình--error-analysis-trực-quan)</td>
+      <td>✅ Hoàn thành</td>
+    </tr>
+  </tbody>
+</table>
+<p>---</p>
+<h2>🔧 Thiết lập môi trường và Khởi chạy (Setup & Run)</h2>
+<p>Thực hiện các bước sau để thiết lập môi trường và khởi chạy ứng dụng từ đầu:</p>
+<h3>Bước 1: Thiết lập và chạy Backend API</h3>
+Mở một cửa sổ Terminal (PowerShell) tại thư mục dự án:
+<pre><code># 1. Kích hoạt môi trường ảo Python
+.\.venv\Scripts\activate
+<h1>2. Cài đặt các thư viện backend cần thiết</h1>
+pip install -r api/requirements.txt
+<h1>3. Khởi chạy FastAPI API server</h1>
+uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
+</code></pre>
+<h2>Kịch bản 1: Huấn luyện và đánh giá Baseline</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Quy trình xử lý tiền xử lý dữ liệu và So sánh mô hình nền (Linear Regression vs Decision Tree vs Random Forest) để tìm thuật toán tối ưu.</p></div>
+<h3>Bước 1.1 – Khám phá và xem cấu trúc dữ liệu huấn luyện</h3>
+Chạy lệnh Python nhanh dưới đây từ Terminal để xem trước 5 dòng đầu tiên của tập dữ liệu huấn luyện thực tế:
+<pre><code>python -c "import pandas as pd; df = pd.read_csv('data/raw/revenue_sample.csv'); print(df.head(5).to_string())"
+</code></pre>
+<strong>Giải thích cấu trúc dữ liệu trả về:</strong>
+<ul>
+<li><strong>thoi_gian (tháng):</strong> Giá trị số từ 1 đến 12 thể hiện các tháng trong năm (đặc trưng tính mùa vụ).</li>
+<li><strong>dong_tien (VNĐ):</strong> Vốn xoay vòng hoạt động của cửa hàng tại tháng đó.</li>
+<li><strong>don_hang:</strong> Tổng số lượng đơn hàng phát sinh trong tháng.</li>
+<li><strong>san_pham:</strong> Tổng số sản phẩm bán ra được.</li>
+<li><strong>khu_vuc:</strong> Biến phân loại gồm 3 vùng thị trường (<code>Bac</code> - Bắc, <code>Trung</code> - Trung, <code>Nam</code> - Nam).</li>
+<li><strong>cua_hang:</strong> Mã định danh của chuỗi cửa hàng tương ứng (<code>CH1</code>, <code>CH2</code>, <code>CH3</code>).</li>
+<li><strong>nhom_san_pham:</strong> Ngành hàng sản phẩm bán lẻ (<code>ThucPham</code> - Thực phẩm, <code>GiaDung</code> - Gia dụng, <code>DienTu</code> - Điện tử).</li>
+<li><strong>revenue (VNĐ):</strong> Doanh thu thực tế đạt được (Nhãn mục tiêu  \(y\) ).</li>
+<p></ul><br><h3>Bước 1.2 – Chạy script so sánh các mô hình Baseline</h3><br>Chạy script huấn luyện so sánh tự động để kiểm chứng hiệu năng R² và MAE của cả 3 mô hình thuật toán nền tảng:<br><pre><code>python model/baseline_comparison.py<br></code></pre><br><strong>Ý nghĩa kỹ thuật của script:</strong><br>1. Đọc dữ liệu từ <code>data/raw/revenue_sample.csv</code>.<br>2. Phân tách tập dữ liệu thành <code>Train set (80%)</code> và <code>Test set (20%)</code>.<br>3. Áp dụng kỹ thuật mã hóa One-Hot Encoding cho các biến phân loại để chuẩn bị dữ liệu đầu vào phù hợp.<br>4. Huấn luyện đồng thời 3 mô hình: <strong>Linear Regression (Tuyến tính)</strong>, <strong>Decision Tree (Cây quyết định)</strong>, và <strong>Random Forest (Rừng ngẫu nhiên)</strong>.<br>5. Đo lường thời gian huấn luyện và tính toán các thang đo chất lượng khoa học: MAE, RMSE, và R² Score.<br>6. Lưu bảng so sánh hiệu năng vào tệp cấu hình JSON tại <code>data/processed/model_comparison.json</code>.</p>
+<p><strong>Kết quả mong đợi trên Console:</strong><br><pre><code>Starting baseline model comparison...<br>Finished Linear Regression         | R2: -0.0963 | MAE: 19485.66 | Train Time: 0.0148s<br>Finished Decision Tree             | R2: 0.9868 | MAE: 4197.24 | Train Time: 0.0085s<br>Finished Random Forest (Proposed)  | R2: 0.9922 | MAE: 2580.38 | Train Time: 0.3046s<br></code></pre><br>*Nhận xét:* Mô hình Tuyến tính (Linear Regression) thất bại hoàn toàn do doanh thu bán lẻ có tính chất phi tuyến phức tạp ( \(R^2 < 0\) ). Mô hình Random Forest đề xuất đạt chất lượng vượt trội nhất với hệ số xác định  \(R^2 \approx 0.99\)  và sai số trung bình (MAE) cực thấp chỉ khoảng ~2,580 VNĐ.</p>
+<p>---</p>
+<h2>Kịch bản 2: Dự đoán đơn lẻ qua API kèm giải thích XAI</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Khả năng giao tiếp REST API và tính toán đóng góp cục bộ Explainable AI (XAI) thời gian thực theo phương pháp Perturbation.</p></div>
+<h3>Bước 2.1 – Gửi truy vấn dự toán đơn lẻ đến API</h3>
+Thực hiện gửi một bản ghi bán lẻ thông qua phương thức POST tới cổng API dịch vụ để kiểm tra kết quả dự toán và phân tích đóng góp đặc trưng.
+<strong>Cách 1: Sử dụng cURL.exe trên Windows Command Prompt hoặc Git Bash:</strong>
+<pre><code>curl.exe -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d "{\"thoi_gian\":12,\"dong_tien\":32000,\"don_hang\":1500,\"san_pham\":3000,\"khu_vuc\":\"Bac\",\"cua_hang\":\"CH1\",\"nhom_san_pham\":\"DienTu\"}"
+</code></pre>
+<strong>Cách 2: Sử dụng lệnh gốc của Windows PowerShell (Tránh trùng alias cURL):</strong>
+<pre><code>Invoke-RestMethod -Uri http://localhost:8000/predict -Method Post -ContentType "application/json" -Body '{"thoi_gian": 12, "dong_tien": 32000, "don_hang": 1500, "san_pham": 3000, "khu_vuc": "Bac", "cua_hang": "CH1", "nhom_san_pham": "DienTu"}'
+</code></pre>
+<strong>Chi tiết các thông số đầu vào gửi đi:</strong>
+<ul>
+<li><code>"thoi_gian": 12</code> : Tháng 12 (mùa mua sắm cuối năm).</li>
+<li><code>"dong_tien": 32000</code> : Vòng xoay tiền vốn là 32,000,000 VNĐ.</li>
+<li><code>"don_hang": 1500</code> : Số lượng đơn đặt hàng là 1,500 đơn.</li>
+<li><code>"san_pham": 3000</code> : Lượng sản phẩm bán là 3,000 đơn vị.</li>
+<li><code>"khu_vuc": "Bac"</code>, <code>"cua_hang": "CH1"</code>, <code>"nhom_san_pham": "DienTu"</code> : Cửa hàng CH1 miền Bắc bán ngành hàng Điện tử.</li>
+</ul>
+<strong>Kết quả JSON nhận về:</strong>
+<pre><code>{
+  "predicted_revenue": 612000.0,
+  "contributions": {
+    "thoi_gian": 8200.0,
+    "dong_tien": 412500.0,
+    "don_hang": 32100.0,
+    "san_pham": -1500.0,
+    "khu_vuc": 12000.0,
+    "cua_hang": 4500.0,
+    "nhom_san_pham": 85000.0
+  }
+}
+</code></pre>
+<strong>Giải thích kết quả XAI:</strong>
+API trả về doanh thu dự báo là <strong>612.000.000 VNĐ</strong> cùng với đóng góp tương ứng của từng thuộc tính so với giá trị mặc định (baseline). 
+<ul>
+<li>Dòng tiền lớn đóng góp tích cực nhiều nhất kéo tăng <strong>+412.500.000 VNĐ</strong>.</li>
+<li>Danh mục ngành hàng Điện tử kéo tăng thêm <strong>+85.000.000 VNĐ</strong> doanh thu.</li>
+<li>Tuy nhiên, tồn kho sản phẩm quá cao làm giảm nhẹ doanh thu <strong>-1.500.000 VNĐ</strong> (hiển thị màu đỏ trên UI).</li>
+<p></ul><br><h3>Bước 2.2 – Kiểm tra trên giao diện Web Dashboard</h3><br>1. Mở trình duyệt truy cập Tab <strong>"Dự đoán & XAI"</strong>.<br>2. Thay đổi các con số trên bảng nhập liệu hoặc chọn nhanh từ phần gợi ý kịch bản.<br>3. Bấm <strong>⚡ Dự đoán doanh thu</strong> và quan sát biểu đồ đóng góp đặc trưng trực quan của XAI (Màu xanh: tăng doanh thu, Màu đỏ: giảm doanh thu).</p>
+<p>---</p>
+<h2>Kịch bản 3: Dự đoán hàng loạt (Batch CSV)</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Khả năng xử lý tệp tin đầu vào (Multipart upload), chuyển đổi cấu trúc DataFrame và trả về kết quả dự đoán hàng loạt.</p></div>
+<h3>Bước 3.1 – Tạo hoặc kiểm tra tệp tin CSV mẫu</h3>
+Hệ thống đã chuẩn bị sẵn tệp tin <code>test_batch.csv</code> ở thư mục gốc của dự án chứa các thông tin cần suy luận hàng loạt:
+<pre><code>thoi_gian,dong_tien,don_hang,san_pham,khu_vuc,cua_hang,nhom_san_pham
+10,32000,880,1700,Nam,CH3,ThucPham
+11,45000,1100,2200,Trung,CH2,DienTu
+12,50000,1200,2500,Bac,CH1,DienTu
+</code></pre>
+<h3>Bước 3.2 – Gửi tệp tin CSV qua API Batch</h3>
+Thực hiện upload tệp tin CSV để API tự động phân tích và tính toán đồng thời các bản ghi dữ liệu.
+<strong>Cách 1: Chạy lệnh cURL.exe từ Terminal:</strong>
+<pre><code>curl.exe -X POST http://localhost:8000/predict/batch -F "file=@test_batch.csv"
+</code></pre>
+<strong>Cách 2: Chạy lệnh gốc của Windows PowerShell:</strong>
+<pre><code>Invoke-RestMethod -Uri http://localhost:8000/predict/batch -Method Post -Form @{file=[System.IO.FileInfo]"test_batch.csv"}
+</code></pre>
+<p><strong>Kịch bản xử lý của API phía Backend:</strong><br>1. Tiếp nhận file tải lên thông qua middleware <code>UploadFile</code>.<br>2. Kiểm tra định dạng đuôi file (<code>.csv</code>).<br>3. Sử dụng <code>pandas.read_csv()</code> để nạp file vào bộ nhớ dưới dạng DataFrame.<br>4. Kiểm duyệt các tiêu đề cột bắt buộc. Nếu thiếu bất kỳ cột nào, API sẽ lập tức trả về lỗi <code>HTTP 400</code>.<br>5. Đưa dữ liệu qua pipeline Random Forest để suy luận hàng loạt.<br>6. Thêm cột <code>predicted_revenue</code> vào DataFrame và trả về toàn bộ dữ liệu kèm kết quả dự đoán dạng JSON.</p>
+<p><strong>Kết quả nhận được:</strong><br>Mảng JSON chi tiết chứa đầy đủ các bản ghi đã được đính kèm trường <code>"predicted_revenue"</code> cụ thể cho từng chuỗi cửa hàng.</p>
+<h3>Bước 3.3 – Tải tệp lên giao diện Dashboard</h3>
+1. Truy cập tab <strong>"Batch CSV"</strong> trên giao diện Web.
+2. Click nút tải file lên, chọn tệp tin <strong><code>test_batch.csv</code></strong> tại thư mục gốc của dự án.
+3. Kết quả dự đoán chi tiết của 10 cửa hàng sẽ hiển thị trực quan.
+<p>---</p>
+<h2>Kịch bản 4: Đánh giá mô hình & Error Analysis trực quan</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Khả năng tự phát hiện lỗi dựa trên thống kê độ lệch Z-Score động và giám sát Concept Drift (Page-Hinkley) từ chuỗi sai số.</p></div>
+<h3>Bước 4.1 – Gọi API phân tích chất lượng từ Terminal</h3>
+Bạn có thể gọi trực tiếp API để xem các tính toán thống kê lỗi và concept drift từ Backend:
+<pre><code>curl.exe http://localhost:8000/analytics/summary
+</code></pre>
+<strong>Phân tích dữ liệu trả về từ API:</strong>
+<ul>
+<li><code>chart_points</code>: Tập 100 điểm dữ liệu đối sánh thực tế vs dự đoán phục vụ việc vẽ đồ thị độ chính xác.</li>
+<li><code>feature_importances</code>: Chỉ số đóng góp toàn cục của các đặc trưng (giúp chứng minh biến <code>dong_tien</code> và <code>don_hang</code> là 2 yếu tố tác động mạnh nhất).</li>
+<li><code>error_analysis</code>: Danh sách 5 dòng dự báo sai nhiều nhất. Backend tự động tính Z-Score của các biến đầu vào để sinh ra giải thích cụ thể: *"Dự đoán thấp hơn thực tế do cửa hàng có lượng đơn hàng vượt mức trung bình đáng kể ( \(z > 1.5\) )..."*.</li>
+<li><code>drift_history</code>: Lịch sử điểm tích lũy Page-Hinkley để giám sát trôi lệch dữ liệu.</li>
+</ul>
+<h3>Bước 4.2 – Xem các công cụ trực quan trên giao diện</h3>
+1. Mở tab <strong>"Đánh giá & Lỗi"</strong> để kiểm tra:
+<ul>
+<li>Đồ thị Scatter đối sánh giúp quan định dạng độ lệch tuyến tính.</li>
+<li>Thẻ phân tích lỗi tự động bôi màu vàng cảnh báo các thuộc tính bị bất thường gây sai lệch dự toán.</li>
+<li>Biểu đồ đường <strong>Page-Hinkley Concept Drift</strong> trực quan.</li>
+<p></ul>2. Chuyển qua tab <strong>"Realtime Live"</strong> bấm <strong>▶ Bắt đầu Realtime</strong> để theo dõi luồng giả lập thay đổi của doanh số trôi chảy mỗi 3 giây.</p>
+<p>---</p>
+<h2>Kịch bản 5: Huấn luyện tự thích ứng và chốt chặn Performance Gate</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Chốt an toàn ngăn chặn sự suy giảm hiệu năng khi huấn luyện lại mô hình mới (Performance Gate).</p></div>
+<h3>Bước 5.1 – Kích hoạt tiến trình huấn luyện lại qua API</h3>
+Gửi yêu cầu huấn luyện lại mô hình từ Terminal để kích hoạt quy trình kiểm định chất lượng:
+<pre><code>curl.exe -X POST http://localhost:8000/retrain
+</code></pre>
+<p><strong>Quy trình kiểm định ngầm của hệ thống (Performance Gate):</strong><br>1. Backend gọi hàm huấn luyện mô hình mới (Candidate model) trên tập dữ liệu mở rộng.<br>2. Đo lường sai số MAE và R² của mô hình ứng viên mới này trên tập dữ liệu test.<br>3. So sánh hiệu năng với mô hình đang vận hành (Current model).<br>4. Áp dụng điều kiện chặn:<br>   <div class="math-box">$ \(\text{Nếu } R^2_{new} < R^2_{old} - 0.02 \implies \text{Từ chối (Gated)}\)  \(</div><br>5. Nếu mô hình mới đạt chuẩn (không bị giảm R² quá 2%), hệ thống ghi đè file <code>model.pkl</code> và tự động hot-reload mô hình mới vào bộ nhớ. Trạng thái trả về sẽ là <code>success</code>. Nếu không đạt chuẩn, mô hình mới bị hủy và trạng thái trả về là <code>gated</code>.</p>
+<strong>Mẫu kết quả JSON trả về nếu chốt chặn được thông qua (Success):</strong>
+<pre><code>{
+  "message": "Retraining triggered",
+  "result": {
+    "time": "2026-05-20T11:45:00Z",
+    "metrics": {"mae": 2580.38, "rmse": 5452.27, "r2": 0.9922},
+    "previous_metrics": {"mae": 2610.11, "rmse": 5510.45, "r2": 0.9918},
+    "status": "success"
+  }
+}
+</code></pre>
+<p><strong>Mẫu kết quả JSON trả về nếu mô hình mới bị suy giảm chất lượng và bị chặn (Gated):</strong><br><pre><code>{<br>  "message": "Retraining triggered",<br>  "result": {<br>    "time": "2026-05-20T11:45:00Z",<br>    "metrics": {"mae": 2580.38, "rmse": 5452.27, "r2": 0.9922},<br>    "candidate_metrics": {"mae": 4500.22, "rmse": 8900.54, "r2": 0.9650},<br>    "status": "gated"<br>  }<br>}<br></code></pre><br>*Chỉ ra:* Trạng thái trả về là <code>gated</code> nếu mô hình mới huấn luyện bị giảm chất lượng hơn 2% so với mô hình đang chạy. Hệ thống tự động từ chối ghi đè file <code>model.pkl</code> để giữ tính ổn định cho ứng dụng.</p>
+<p>---</p>
+<h2>Kịch bản 6: Docker Swarm & Benchmark hiệu năng</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Triển khai Multi-replica, Load Balancing trên Docker Swarm và đo lường hiệu năng.</p></div>
+<h3>Bước 6.1 – Khởi động benchmark tải hệ thống</h3>
+<pre><code>python cluster/benchmark.py
+</code></pre>
+*Chỉ ra:* Script sẽ gửi 100 requests đồng thời (concurrency=10) vào API để đo lường Throughput (RPS) và Latency thực tế của môi trường hiện tại, sau đó lưu kết quả vào <code>data/processed/docker_benchmark.json</code>.
+<h3>Bước 6.2 – So sánh hiệu năng trên Dashboard</h3>
+1. Mở tab <strong>"Docker Swarm"</strong> trên Dashboard.
+2. Kiểm tra biểu đồ so sánh:
+<ul>
+<li><strong>Throughput (RPS):</strong> Docker Swarm (2 Replicas) đạt <strong>~135 RPS</strong> vượt trội so với 1 container thông thường (~78 RPS).</li>
+<li><strong>Độ trễ (Latency ms):</strong> Độ trễ trung bình của Swarm chỉ khoảng <strong>7.4 ms</strong> do tải được định tuyến vòng (Round-Robin) tới các bản sao container khác nhau.</li>
+<p></ul><br>---</p>
+<h2>🖥️ Phần 2: Hướng dẫn chạy Demo trực quan trên UI (Interactive UI Guide)</h2>
+<p>Bản cập nhật v3.0 đã tích hợp trực tiếp một trang <strong>"Hướng dẫn Demo" (Demo Shell)</strong> làm màn hình mặc định khi bạn truy cập Dashboard. Bạn có thể dễ dàng kích hoạt và theo dõi các kịch bản chỉ với các cú click chuột.</p>
+<h3>2.1 – Kịch bản 1: Baseline Comparison trên UI</h3>
+1. Trên tab <strong>"Hướng dẫn Demo"</strong>, tìm thẻ <strong>"Kịch bản 1"</strong>.
+2. Click nút <strong>"📊 Xem so sánh Baseline"</strong>.
+3. Hệ thống sẽ tự động chuyển hướng bạn sang tab <strong>Baseline</strong> để hiển thị bảng số liệu chi tiết và 2 biểu đồ cột so sánh trực quan chỉ số \) R^2 \( và sai số MAE giữa Linear Regression, Decision Tree và Random Forest.
+<h3>2.2 – Kịch bản 2: Dự đoán đơn lẻ & XAI trên UI</h3>
+1. Tìm thẻ <strong>"Kịch bản 2"</strong> trên trang Hướng dẫn.
+2. Click nút <strong>"🎯 Tự động điền & chạy XAI"</strong>.
+3. Hệ thống sẽ tự động chuyển sang tab <strong>"Dự đoán & XAI"</strong>, điền các giá trị mẫu (Tháng 12, Dòng tiền 32K, Đơn hàng 1500, Sản phẩm 3000, Cửa hàng 1, Khu vực Bắc, Nhóm Điện tử) và thực thi dự đoán ngay lập tức.
+4. Bạn sẽ thấy kết quả dự đoán cùng biểu đồ cột ngang thể hiện trực quan mức độ đóng góp cục bộ (XAI) của từng biến số.
+<h3>2.3 – Kịch bản 3: Dự đoán hàng loạt (Batch CSV) trên UI</h3>
+1. Tìm thẻ <strong>"Kịch bản 3"</strong> trên trang Hướng dẫn.
+2. Click nút <strong>"📂 Chuyển sang Batch CSV"</strong>.
+3. Hệ thống chuyển sang tab <strong>Batch CSV</strong>, nơi bạn chỉ cần nhấn chọn file <code>test_batch.csv</code> và hệ thống sẽ xử lý hiển thị bảng kết quả cho bạn.
+<h3>2.4 – Kịch bản 4: Đánh giá sai số & Drift trên UI</h3>
+1. Tìm thẻ <strong>"Kịch bản 4"</strong>.
+2. Click nút <strong>"📈 Xem Đánh giá & Drift"</strong>.
+3. Hệ thống sẽ chuyển hướng đến tab <strong>"Đánh giá & Lỗi"</strong>, hiển thị:
+<ul>
+<li>Biểu đồ đường <strong>Thực tế vs Dự toán</strong> và độ quan trọng đặc trưng toàn cục.</li>
+<li>Thẻ xếp hạng phân tích lỗi (<strong>Error Analysis Cards</strong>) - tự động bôi vàng cảnh báo các thuộc tính có Z-score bất thường (\) z > 1.5$) kèm giải thích chi tiết.</li>
+<li>Biểu đồ theo dõi độ lệch phân phối <strong>Page-Hinkley Concept Drift</strong>.</li>
+<p></ul><br><h3>2.5 – Kịch bản 5: Kiểm soát chất lượng Retrain (Performance Gate) trên UI</h3><br>1. Tìm thẻ <strong>"Kịch bản 5"</strong> trên trang Hướng dẫn.<br>2. Click nút <strong>"⚡ Kích hoạt Retrain Ngay Lập Tức (Manual Trigger)"</strong>.<br>3. Dashboard sẽ gọi trực tiếp API <code>/retrain</code> nền và hiển thị trực tiếp một hộp thoại nhật ký (logs) màu xanh lá ở phía dưới. Nhật ký này cho biết trạng thái huấn luyện là <code>success</code> (Mô hình tốt hơn được cập nhật) hay <code>gated</code> (Bị chặn do chất lượng kém hơn mô hình cũ).</p>
+<h3>2.6 – Kịch bản 6: Đánh giá hiệu năng Swarm Load Balancing trên UI</h3>
+1. Tìm thẻ <strong>"Kịch bản 6"</strong>.
+2. Click nút <strong>"🐳 Xem biểu đồ Docker Swarm"</strong>.
+3. Hệ thống chuyển đến tab <strong>Docker Swarm</strong> để hiển thị so sánh Throughput (RPS), Latency, CPU và RAM của cụm multi-replica.
+    </div>
+
+    <!-- Script to add Copy Buttons to all <pre> elements -->
+    <script>
+        document.querySelectorAll('pre').forEach((preElement) => {
+            // Create copy button
+            const button = document.createElement('button');
+            button.className = 'copy-btn';
+            button.innerText = 'Copy';
+            
+            // Append button to pre
+            preElement.appendChild(button);
+            
+            // Add click listener
+            button.addEventListener('click', async () => {
+                const codeElement = preElement.querySelector('code');
+                const text = codeElement ? codeElement.innerText : preElement.innerText;
+                
+                try {
+                    await navigator.clipboard.writeText(text);
+                    button.innerText = 'Copied!';
+                    button.classList.add('copied');
+                    
+                    // Reset button text after 2 seconds
+                    setTimeout(() => {
+                        button.innerText = 'Copy';
+                        button.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

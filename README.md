@@ -1,181 +1,127 @@
-# Revenue Forecasting with Random Forest
+# 🛒 Retail Revenue Forecasting System
 
-Project nay train mo hinh du bao doanh thu bang `RandomForestRegressor`.
+> **Đề tài 12 – Phân tích và Dự đoán Doanh thu Bán lẻ**
 
-## 1. Cai thu vien
+Hệ thống phân tích và dự đoán doanh thu bán lẻ dựa trên dữ liệu lịch sử, bao gồm mô hình ML, REST API, Dashboard React và triển khai Docker Swarm.
 
-```powershell
-python -m pip install -r requirements.txt
+---
+
+## 📁 Cấu trúc thư mục
+
+```
+ML_Docker_demo/
+├── data/
+│   ├── raw/
+│   │   ├── revenue_sample.csv       ← Dữ liệu huấn luyện
+│   │   └── new_revenue_features.csv ← Dữ liệu dự đoán batch
+│   └── processed/
+├── model/
+│   ├── train_model.py               ← Script huấn luyện mô hình
+│   ├── evaluate_model.py            ← Script đánh giá / dự đoán offline
+│   └── model.pkl                    ← Model đã huấn luyện (Random Forest)
+├── api/
+│   ├── main.py                      ← FastAPI application
+│   ├── predictor.py                 ← Inference engine
+│   ├── schemas.py                   ← Pydantic request/response schemas
+│   └── requirements.txt
+├── docker/
+│   ├── Dockerfile                   ← Multi-stage build
+│   ├── docker-compose.yml           ← Compose config
+│   └── docker-stack.yml
+├── cluster/
+│   └── deploy.sh                    ← Script triển khai Docker Swarm
+├── dashboard/
+│   └── src/
+│       ├── main.jsx                 ← React app (3 tabs)
+│       └── styles.css
+├── README.md
+└── DEMO.md                          ← Kịch bản demo & chứng minh yêu cầu
 ```
 
-## 2. Train model
+---
 
-```powershell
-python train_revenue_model.py
+## ⚙️ Cài đặt & Chạy
+
+### Yêu cầu hệ thống
+- Python 3.10+
+- Node.js 18+
+- Docker Desktop
+
+### 1. Cài đặt Python
+
+```bash
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+pip install -r api/requirements.txt
 ```
 
-Model se duoc luu tai:
+### 2. Huấn luyện mô hình
 
-```text
-models/revenue_random_forest.joblib
+```bash
+python model/train_model.py
 ```
 
-## 3. Dung du lieu that
+### 3. Chạy API (FastAPI)
 
-Thay file `data/revenue_sample.csv` bang CSV cua ban. Mac dinh script can cot muc tieu:
-
-```text
-revenue
+```bash
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Tat ca cac cot con lai se duoc dung lam feature de train.
+→ Swagger UI: **http://localhost:8000/docs**
 
-Neu cot doanh thu co ten khac, chay:
+### 4. Chạy Dashboard (React)
 
-```powershell
-python train_revenue_model.py --data data/your_file.csv --target ten_cot_doanh_thu
-```
-
-## 4. Du doan
-
-Tao CSV moi co cung cac cot feature voi du lieu train, nhung khong can cot `revenue`, roi chay:
-
-```powershell
-python predict_revenue.py --input data/new_revenue_features.csv
-```
-
-## 5. Chay REST API
-
-API dung FastAPI, endpoint du doan la:
-
-```text
-POST /predict
-```
-
-Khoi dong server:
-
-```powershell
-uvicorn api.main:app --reload
-```
-
-Mo Swagger:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-Body mau cho Swagger hoac Postman:
-
-```json
-{
-  "month": 12,
-  "marketing_spend": 32000,
-  "website_visits": 92000,
-  "conversion_rate": 0.045,
-  "avg_order_value": 60,
-  "active_customers": 2050
-}
-```
-
-Response mau:
-
-```json
-{
-  "predicted_revenue": 252612.52
-}
-```
-
-## 6. Chay React dashboard
-
-Vao folder dashboard va cai dependency:
-
-```powershell
+```bash
 cd dashboard
 npm install
+npm run dev
 ```
 
-Chay giao dien:
+→ Dashboard: **http://localhost:5173**
 
-```powershell
-npm run dev -- --port 5173
-```
+### 5. Triển khai Docker Swarm
 
-Mo dashboard:
+```bash
+# Build images
+docker compose -f docker/docker-compose.yml build
 
-```text
-http://127.0.0.1:5173
-```
-
-Dashboard se goi FastAPI tai:
-
-```text
-http://127.0.0.1:8000/predict
-```
-
-## 7. Chay bang Docker
-
-Build va chay toan bo he thong:
-
-```powershell
-docker compose up --build
-```
-
-Sau khi container chay:
-
-```text
-API:       http://127.0.0.1:8000
-Swagger:   http://127.0.0.1:8000/docs
-Dashboard: http://127.0.0.1:5173
-```
-
-Dung lenh sau de dung he thong:
-
-```powershell
-docker compose down
-```
-
-## 8. Deploy bang Docker Swarm
-
-Build image truoc khi deploy stack:
-
-```powershell
-docker compose build
-```
-
-Khoi tao Swarm:
-
-```powershell
+# Khởi tạo Swarm (nếu chưa có)
 docker swarm init
+
+# Deploy stack
+docker stack deploy -c docker/docker-compose.yml retail_system
+
+# Hoặc dùng script
+bash cluster/deploy.sh
 ```
 
-Deploy stack:
+---
 
-```powershell
-docker stack deploy -c docker/docker-stack.yml retail-system
-```
+## 🔗 API Endpoints
 
-Kiem tra replicas:
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| GET | `/` | Health check |
+| GET | `/docs` | Swagger UI |
+| POST | `/predict` | Dự đoán đơn lẻ |
+| POST | `/predict/batch` | Dự đoán batch (CSV) |
+| GET | `/analytics/summary` | Thống kê theo khu vực/cửa hàng/nhóm SP |
+| POST | `/retrain` | Kích hoạt retrain thủ công |
+| GET | `/retrain/status` | Trạng thái retrain gần nhất |
 
-```powershell
-docker service ls
-```
+---
 
-Xem chi tiet task cua tung service:
+## 👥 Phân công nhóm
 
-```powershell
-docker service ps retail-system_api
-docker service ps retail-system_dashboard
-```
+| Thành viên | Vai trò | File chính |
+|------------|---------|-----------|
+| Data Engineer | Thu thập, tiền xử lý dữ liệu | `data/`, `model/train_model.py` |
+| ML Engineer | Xây dựng và tối ưu mô hình | `model/train_model.py`, `model/evaluate_model.py` |
+| API Developer | REST API FastAPI | `api/` |
+| DevOps Engineer | Docker, Swarm | `docker/`, `cluster/` |
+| Data Analyst & Tester | Dashboard, kiểm thử | `dashboard/`, `DEMO.md` |
 
-Scale thu cong de demonstrate scalability:
-
-```powershell
-docker service scale retail-system_api=5
-docker service scale retail-system_dashboard=3
-```
-
-Dung stack:
-
-```powershell
-docker stack rm retail-system
-```
+> 📋 **Xem kịch bản demo chi tiết tại [DEMO.md](DEMO.md)**
