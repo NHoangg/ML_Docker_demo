@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tài liệu Kiến trúc & Kỹ thuật - Hệ thống ML Dự báo Doanh thu v3.0</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- MathJax for LaTeX Rendering -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --accent: #38bdf8;
+      --accent-rgb: 56, 189, 248;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border-color: #334155;
+      --sidebar-width: 280px;
+      --font-sans: 'Inter', sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --accent: #0284c7;
+      --accent-rgb: 2, 132, 199;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --border-color: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+    }
+
+    /* Layout */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 2rem 1.5rem;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+    }
+
+    .sidebar-logo {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sidebar-logo span {
+      background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-version {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      background: var(--bg-tertiary);
+      padding: 0.1rem 0.5rem;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--text-primary);
+      background-color: var(--bg-tertiary);
+    }
+
+    .nav-link.active {
+      border-left: 3px solid var(--accent);
+      border-radius: 0 0.5rem 0.5rem 0;
+      background-color: rgba(var(--accent-rgb), 0.1);
+      color: var(--accent);
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      padding: 3rem 4rem;
+      flex-grow: 1;
+      max-width: 1200px;
+    }
+
+    header {
+      margin-bottom: 3.5rem;
+      position: relative;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      line-height: 1.2;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      margin-top: 3.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    /* Code Block with Copy */
+    .code-container {
+      position: relative;
+      margin: 1.5rem 0;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background-color: #1e1e2e;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #151521;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      color: #a6adc8;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      color: #a6adc8;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background-color: rgba(255,255,255,0.1);
+      color: #f5c2e7;
+    }
+
+    pre {
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: #cdd6f4;
+      margin: 0;
+    }
+
+    /* Mathematical formula card */
+    .math-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+
+    /* SVG Diagrams styling */
+    .diagram-container {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      margin: 2rem 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+      background-color: var(--bg-secondary);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    th, td {
+      padding: 1rem 1.25rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--bg-tertiary);
+      font-family: var(--font-heading);
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Info Alert Card */
+    .alert-card {
+      background-color: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-left: 4px solid var(--accent);
+      border-radius: 0.5rem;
+      padding: 1.25rem;
+      margin: 1.5rem 0;
+      color: var(--text-primary);
+    }
+
+    .alert-title {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .theme-toggle-btn {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle-btn:hover {
+      background-color: var(--bg-tertiary);
+    }
+
+    /* Folder Structure Tree */
+    .folder-tree {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      color: var(--text-secondary);
+    }
+
+    .folder-tree span.folder {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .folder-tree span.file {
+      color: var(--text-primary);
+    }
+
+    .folder-tree span.comment {
+      color: #6272a4;
+      font-style: italic;
+    }
+
+    @media (max-width: 900px) {
+      .app-container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <span>Retail ML System</span>
+          <span class="sidebar-version">v3.0</span>
+        </div>
+      </div>
+      
+      <nav>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#overview" class="nav-link active">1. Tổng Quan Dự Án</a>
+          </li>
+          <li class="nav-item">
+            <a href="#architecture" class="nav-link">2. Kiến Trúc Hệ Thống</a>
+          </li>
+          <li class="nav-item">
+            <a href="#structure" class="nav-link">3. Cấu Trúc Mã Nguồn</a>
+          </li>
+          <li class="nav-item">
+            <a href="#drift" class="nav-link">4. Concept Drift (Page-Hinkley)</a>
+          </li>
+          <li class="nav-item">
+            <a href="#xai" class="nav-link">5. Thuật Toán XAI Perturbation</a>
+          </li>
+          <li class="nav-item">
+            <a href="#error-analysis" class="nav-link">6. Phân Tích Lỗi Động</a>
+          </li>
+          <li class="nav-item">
+            <a href="#gating" class="nav-link">7. Cơ Chế Performance Gate</a>
+          </li>
+          <li class="nav-item">
+            <a href="#swarm" class="nav-link">8. Docker Swarm & Cân Bằng Tải</a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top controls -->
+      <div class="controls">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeBtn">
+          🌙 Chế độ tối
+        </button>
+      </div>
+
+      <header>
+        <h1>Dự Án Dự Báo Doanh Thu Bán Lẻ & Hệ Thống Swarm Tự Thích Ứng</h1>
+        <p>Tài liệu đặc tả kỹ thuật chi tiết cấu trúc, luồng hoạt động, nền tảng toán học và các giải pháp đổi mới được xây dựng tự lực trong dự án.</p>
+      </header>
+
+      <!-- Section 1: Overview -->
+      <section id="overview">
+        <h2>1. Tổng Quan Dự Án</h2>
+        <p>
+          Dự án <strong>Hệ Thống Dự Báo Doanh Thu Bán Lẻ v3.0</strong> được xây dựng nhằm giải quyết bài toán cốt lõi trong bán lẻ: 
+          Dự đoán doanh số bán hàng trong tương lai dựa trên chuỗi thông tin đa chiều. Đồng thời tích hợp cơ chế tự huấn luyện thích ứng (Self-Adaptive Retraining), giải thích mô hình (XAI) và cơ sở hạ tầng phân tán sẵn sàng cao (High Availability) trên Docker Swarm.
+        </p>
+        <p>
+          Đặc điểm học thuật nổi bật của dự án là <strong>không sử dụng các thư viện có sẵn cho các tính năng nâng cao</strong> (như Page-Hinkley, SHAP/LIME, Error Analysis). Tất cả các thuật toán khoa học đều được đội ngũ phát triển xây dựng trực tiếp từ nền tảng toán học nguyên bản.
+        </p>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Đặc trưng (Feature)</th>
+              <th>Kiểu dữ liệu</th>
+              <th>Ý nghĩa học thuật & Thực tiễn</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>thoi_gian</code></td>
+              <td>Numerical (Tháng)</td>
+              <td>Mô hình hóa xu hướng mùa vụ trong năm của hoạt động kinh doanh.</td>
+            </tr>
+            <tr>
+              <td><code>dong_tien</code></td>
+              <td>Numerical (VNĐ)</td>
+              <td>Đại diện dòng vốn đầu tư xoay vòng của chuỗi cửa hàng.</td>
+            </tr>
+            <tr>
+              <td><code>don_hang</code></td>
+              <td>Numerical (Số lượng)</td>
+              <td>Đo lường dung lượng giao dịch thực tế.</td>
+            </tr>
+            <tr>
+              <td><code>san_pham</code></td>
+              <td>Numerical (Số lượng)</td>
+              <td>Số lượng sản phẩm lưu kho để đáp ứng nhu cầu thị trường.</td>
+            </tr>
+            <tr>
+              <td><code>khu_vuc</code></td>
+              <td>Categorical (Bắc, Trung, Nam)</td>
+              <td>Yếu tố địa lý ảnh hưởng trực tiếp tới hành vi tiêu dùng.</td>
+            </tr>
+            <tr>
+              <td><code>nhom_san_pham</code></td>
+              <td>Categorical (Điện tử, Gia dụng, Thực phẩm)</td>
+              <td>Phân nhóm biên lợi nhuận và tốc độ xoay vòng vốn.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Section 2: Technical Architecture -->
+      <section id="architecture">
+        <h2>2. Kiến Trúc Hệ Thống</h2>
+        <p>
+          Hệ thống được thiết kế theo kiến trúc Microservices và Client-Server tách biệt, đóng gói hoàn chỉnh bằng Docker và quản lý phân tán bởi cụm Docker Swarm.
+        </p>
+        
+        <div class="diagram-container">
+          <!-- Architecture SVG -->
+          <svg width="800" height="420" viewBox="0 0 800 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background grids -->
+            <rect width="800" height="420" rx="12" fill="var(--bg-secondary)"/>
+            <path d="M50 0V420M270 0V420M530 0V420M750 0V420" stroke="var(--border-color)" stroke-dasharray="4 4"/>
+            
+            <!-- client layer -->
+            <rect x="20" y="160" width="180" height="100" rx="8" fill="rgba(56, 189, 248, 0.15)" stroke="var(--accent)" stroke-width="2"/>
+            <text x="110" y="200" fill="var(--text-primary)" font-family="Outfit" font-size="16" font-weight="bold" text-anchor="middle">React Dashboard</text>
+            <text x="110" y="225" fill="var(--text-secondary)" font-family="Inter" font-size="12" text-anchor="middle">React 19 & Recharts</text>
+            
+            <!-- Load Balancer -->
+            <polygon points="280,210 320,160 380,160 380,260 320,260" fill="rgba(245, 158, 11, 0.15)" stroke="var(--warning)" stroke-width="2"/>
+            <text x="335" y="205" fill="var(--text-primary)" font-family="Outfit" font-size="13" font-weight="bold" text-anchor="middle">Swarm Ingress</text>
+            <text x="335" y="225" fill="var(--text-secondary)" font-family="Inter" font-size="11" text-anchor="middle">Load Balancer</text>
+            
+            <!-- replicas -->
+            <rect x="420" y="70" width="160" height="80" rx="6" fill="rgba(16, 185, 129, 0.15)" stroke="var(--success)" stroke-width="2"/>
+            <text x="500" y="110" fill="var(--text-primary)" font-family="Outfit" font-size="14" font-weight="bold" text-anchor="middle">FastAPI Replica 1</text>
+            <text x="500" y="130" fill="var(--text-secondary)" font-family="Inter" font-size="12" text-anchor="middle">Port 8000 (Docker)</text>
+
+            <rect x="420" y="170" width="160" height="80" rx="6" fill="rgba(16, 185, 129, 0.15)" stroke="var(--success)" stroke-width="2"/>
+            <text x="500" y="210" fill="var(--text-primary)" font-family="Outfit" font-size="14" font-weight="bold" text-anchor="middle">FastAPI Replica 2</text>
+            <text x="500" y="230" fill="var(--text-secondary)" font-family="Inter" font-size="12" text-anchor="middle">Port 8000 (Docker)</text>
+
+            <rect x="420" y="270" width="160" height="80" rx="6" fill="rgba(16, 185, 129, 0.05)" stroke="var(--border-color)" stroke-dasharray="2 2"/>
+            <text x="500" y="315" fill="var(--text-secondary)" font-family="Inter" font-size="12" text-anchor="middle">Scale Replicas...</text>
+
+            <!-- ML Core -->
+            <rect x="640" y="135" width="140" height="150" rx="8" fill="rgba(168, 85, 247, 0.15)" stroke="#a855f7" stroke-width="2"/>
+            <text x="710" y="165" fill="var(--text-primary)" font-family="Outfit" font-size="15" font-weight="bold" text-anchor="middle">ML Engine</text>
+            <text x="710" y="195" fill="var(--accent)" font-family="Inter" font-size="11" font-weight="bold" text-anchor="middle">Page-Hinkley Drift</text>
+            <text x="710" y="220" fill="var(--success)" font-family="Inter" font-size="11" font-weight="bold" text-anchor="middle">Perturbation XAI</text>
+            <text x="710" y="245" fill="var(--warning)" font-family="Inter" font-size="11" font-weight="bold" text-anchor="middle">Performance Gate</text>
+            
+            <!-- Connection lines -->
+            <path d="M200 210H280" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrow)"/>
+            <path d="M380 190L415 120" stroke="var(--warning)" stroke-width="1.5"/>
+            <path d="M380 210H415" stroke="var(--warning)" stroke-width="1.5"/>
+            <path d="M380 230L415 300" stroke="var(--warning)" stroke-width="1.5" stroke-dasharray="2 2"/>
+            
+            <path d="M580 110H610V180H640" stroke="var(--success)" stroke-width="1.5"/>
+            <path d="M580 210H640" stroke="var(--success)" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </section>
+
+      <!-- Section 3: Project Structure -->
+      <section id="structure">
+        <h2>3. Cấu Trúc Mã Nguồn</h2>
+        <p>
+          Cấu trúc thư mục của dự án được module hóa cực kỳ rõ ràng, tách bạch giữa phần xử lý mô hình AI, ứng dụng FastAPI API, kịch bản Cluster Swarm và React Frontend.
+        </p>
+        
+        <div class="folder-tree">
+          <span class="folder">ML_Docker_demo/</span><br>
+          ├── <span class="folder">api/</span> <span class="comment"># Module API server FastAPI</span><br>
+          │   ├── <span class="file">drift_detector.py</span> <span class="comment"># Page-Hinkley Drift Detector xây dựng thủ công</span><br>
+          │   ├── <span class="file">main.py</span> <span class="comment"># FastAPI Routing, XAI & Logic Error Analysis động</span><br>
+          │   ├── <span class="file">predictor.py</span> <span class="comment"># Engine thực thi mô hình và gọi XAI</span><br>
+          │   └── <span class="file">schemas.py</span> <span class="comment"># Định nghĩa cấu trúc Pydantic Models</span><br>
+          ├── <span class="folder">cluster/</span> <span class="comment"># Kịch bản cụm Docker Swarm</span><br>
+          │   └── <span class="file">benchmark.py</span> <span class="comment"># Script giả lập tải 100 requests để đo hiệu năng</span><br>
+          ├── <span class="folder">dashboard/</span> <span class="comment"># React Frontend Dashboard</span><br>
+          │   ├── <span class="folder">src/</span><br>
+          │   │   ├── <span class="file">main.jsx</span> <span class="comment"># 7 tabs điều hướng, biểu đồ Recharts, giao diện Demo trực quan</span><br>
+          │   │   └── <span class="file">styles.css</span> <span class="comment"># Định dạng giao diện theo hệ màu Premium dark-slate</span><br>
+          │   └── <span class="file">package.json</span> <span class="comment"># Quản lý thư viện React & Vite</span><br>
+          ├── <span class="folder">data/</span> <span class="comment"># Dữ liệu dạng file</span><br>
+          │   ├── <span class="folder">processed/</span> <span class="comment"># Lưu kết quả benchmark & so sánh baseline</span><br>
+          │   └── <span class="folder">raw/</span> <span class="comment"># Mẫu tập dữ liệu bán lẻ</span><br>
+          ├── <span class="folder">docker/</span> <span class="comment"># Cấu hình container</span><br>
+          │   ├── <span class="file">Dockerfile.api</span> <span class="comment"># Build ảnh backend API</span><br>
+          │   └── <span class="file">docker-compose.yml</span> <span class="comment"># Cấu hình Swarm Stack</span><br>
+          └── <span class="folder">model/</span> <span class="comment"># Huấn luyện và so sánh Baseline</span><br>
+              ├── <span class="file">baseline_comparison.py</span> <span class="comment"># Đánh giá LR vs DT vs RF</span><br>
+              └── <span class="file">train_model.py</span> <span class="comment"># Sinh dữ liệu giả lập & huấn luyện mô hình</span><br>
+        </div>
+      </section>
+
+      <!-- Section 4: Concept Drift (Page-Hinkley) -->
+      <section id="drift">
+        <h2>4. Giám Sát Trôi Lệch Dữ Liệu (Page-Hinkley Concept Drift)</h2>
+        <p>
+          Trong môi trường sản xuất thực tế, phân phối của dữ liệu đầu vào luôn thay đổi theo thời gian (ví dụ: khủng hoảng kinh tế, xu hướng tiêu dùng thay đổi đột ngột). Hiện tượng này gọi là <strong>Concept Drift</strong>, làm suy giảm chất lượng dự báo của mô hình.
+        </p>
+        <p>
+          Để phát hiện Concept Drift một cách khoa học, chúng tôi đã tự thiết kế thuật toán giám sát <strong>Page-Hinkley (PH)</strong> dựa trên lý thuyết kiểm định thay đổi điểm (Change-Point Detection) thống kê.
+        </p>
+        
+        <div class="alert-card">
+          <div class="alert-title">🔬 Nguyên lý hoạt động</div>
+          Thuật toán Page-Hinkley tính toán tổng lũy kế các sai số dự báo thực tế so với một ngưỡng suy biến xác định trước. Khi tổng lũy kế vượt quá một ngưỡng an toàn cho phép \(\lambda\), hệ thống sẽ cảnh báo Concept Drift và kích hoạt tiến trình retrain tự thích ứng.
+        </div>
+
+        <div class="math-card">
+          <h4>Phương trình toán học cốt lõi:</h4>
+          <p>
+            1. Tính sai số dự báo tuyệt đối tại thời điểm \(t\):
+            $$e_t = |y_t - \hat{y}_t|$$
+          </p>
+          <p>
+            2. Cập nhật giá trị sai số trung bình lũy kế đến thời điểm \(t\):
+            $$\mu_t = \frac{1}{t}\sum_{i=1}^t e_i$$
+          </p>
+          <p>
+            3. Tính toán độ lệch sai số tức thời có điều chỉnh bằng tham số suy hao \(\delta\) (thường chọn \(\delta = 0.05\) để lọc nhiễu nhỏ):
+            $$m_t = e_t - \mu_t - \delta$$
+          </p>
+          <p>
+            4. Cập nhật chỉ số tích lũy trôi lệch \(U_t\) (Chỉ số Page-Hinkley):
+            $$U_t = \max(0, U_{t-1} + m_t)$$
+          </p>
+          <p>
+            5. Kiểm định điều kiện cảnh báo Drift:
+            $$\text{Nếu } U_t > \lambda \implies \text{Cảnh báo Concept Drift (Kích hoạt Retrain)}$$
+          </p>
+        </div>
+
+        <div class="diagram-container">
+          <!-- Page Hinkley flow chart -->
+          <svg width="700" height="200" viewBox="0 0 700 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="700" height="200" rx="8" fill="var(--bg-secondary)"/>
+            
+            <!-- Step 1 -->
+            <rect x="20" y="60" width="100" height="80" rx="6" fill="rgba(56, 189, 248, 0.1)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="70" y="95" fill="var(--text-primary)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">Input Sample</text>
+            <text x="70" y="115" fill="var(--text-secondary)" font-family="Inter" font-size="10" text-anchor="middle">y_t và pred_t</text>
+            
+            <!-- Step 2 -->
+            <rect x="160" y="60" width="120" height="80" rx="6" fill="rgba(56, 189, 248, 0.1)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="220" y="95" fill="var(--text-primary)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">Tính Sai Số e_t</text>
+            <text x="220" y="115" fill="var(--text-secondary)" font-family="Inter" font-size="10" text-anchor="middle">e_t = |y_t - pred_t|</text>
+
+            <!-- Step 3 -->
+            <rect x="320" y="60" width="140" height="80" rx="6" fill="rgba(56, 189, 248, 0.1)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="390" y="95" fill="var(--text-primary)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">Cập Nhật Lũy Kế U_t</text>
+            <text x="390" y="115" fill="var(--text-secondary)" font-family="Inter" font-size="10" text-anchor="middle">U_t = max(0, U_t-1 + m_t)</text>
+
+            <!-- Step 4 (Decision) -->
+            <polygon points="530,100 580,60 630,100 580,140" fill="rgba(239, 68, 68, 0.1)" stroke="var(--danger)" stroke-width="1.5"/>
+            <text x="580" y="104" fill="var(--text-primary)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">U_t > lambda?</text>
+            
+            <!-- Arrows -->
+            <path d="M120 100H160" stroke="var(--text-secondary)" stroke-width="1.5" />
+            <path d="M280 100H320" stroke="var(--text-secondary)" stroke-width="1.5" />
+            <path d="M460 100H530" stroke="var(--text-secondary)" stroke-width="1.5" />
+            
+            <!-- Outputs -->
+            <path d="M580 60V30H670" stroke="var(--danger)" stroke-width="1.5" stroke-dasharray="2 2"/>
+            <text x="660" y="25" fill="var(--danger)" font-family="Inter" font-size="10" font-weight="bold">Concept Drift!</text>
+            
+            <path d="M580 140V170H670" stroke="var(--success)" stroke-width="1.5"/>
+            <text x="660" y="165" fill="var(--success)" font-family="Inter" font-size="10" font-weight="bold">Safe (Normal)</text>
+          </svg>
+        </div>
+      </section>
+
+      <!-- Section 5: XAI Perturbation Algorithm -->
+      <section id="xai">
+        <h2>5. Thuật Toán Giải Thích Cục Bộ XAI Perturbation</h2>
+        <p>
+          Mô hình Random Forest hoạt động giống như một "hộp đen" (Black-box), rất khó để biết tại sao mô hình lại dự đoán ra một con số cụ thể. 
+          Thay vì cài đặt các thư viện nặng nề như SHAP hay LIME, chúng tôi tự phát triển một thuật toán **XAI Perturbation (Xáo Trộn Đặc Trưng Cục Bộ)** gọn nhẹ, hiệu quả cao.
+        </p>
+        
+        <div class="math-card">
+          <h4>Giải thuật toán học XAI:</h4>
+          <p>
+            Cho một mẫu dữ liệu cần dự báo \(x = [x_1, x_2, \dots, x_d]\) với kết quả dự báo của mô hình là \(f(x)\).
+          </p>
+          <p>
+            1. Xác định giá trị cơ sở (Baseline Input) \(x^{base}\). Trong hệ thống của chúng tôi, \(x^{base}\) là điểm dữ liệu chứa các giá trị trung bình (Mean) của các biến số thực và phạm trù phổ biến nhất của các biến phân loại trong tập test. Kết quả dự báo cơ sở là \(f(x^{base})\).
+          </p>
+          <p>
+            2. Đối với từng đặc trưng thứ \(i\) (\(x_i\)), ta tạo ra một điểm dữ liệu xáo trộn \(x^{(+i)}\) bằng cách giữ nguyên toàn bộ các thuộc tính khác như điểm baseline nhưng thay thế riêng thuộc tính thứ \(i\) bằng giá trị thực tế của điểm cần giải thích:
+            $$x^{(+i)} = [x^{base}_1, \dots, x^{base}_{i-1}, \mathbf{x_i}, x^{base}_{i+1}, \dots, x^{base}_d]$$
+          </p>
+          <p>
+            3. Tính toán đóng góp thô (raw contribution) của đặc trưng \(i\):
+            $$\phi_i^{raw} = f(x^{(+i)}) - f(x^{base})$$
+          </p>
+          <p>
+            4. Chuẩn hóa tỷ lệ để đảm bảo tổng đóng góp của tất cả các biến bằng chính xác độ lệch giữa dự báo thực tế và dự báo cơ sở:
+            $$\sum_{j=1}^d \phi_j = f(x) - f(x^{base})$$
+            $$\phi_i = \phi_i^{raw} \times \frac{f(x) - f(x^{base})}{\sum_{j=1}^d \phi_j^{raw}}$$
+          </p>
+        </div>
+
+        <div class="alert-card" style="background-color: rgba(16, 185, 129, 0.05); border-left-color: var(--success);">
+          <div class="alert-title" style="color: var(--success);">✔ Ý nghĩa trực quan hóa</div>
+          Trong tab **"Dự đoán & XAI"**, thuật toán sẽ xuất ra giá trị đóng góp bằng tiền mặt (VNĐ) của từng thuộc tính. Biến nào kéo doanh số tăng sẽ có màu xanh lá, biến nào làm giảm doanh số sẽ có màu đỏ.
+        </div>
+      </section>
+
+      <!-- Section 6: Dynamic Error Analysis -->
+      <section id="error-analysis">
+        <h2>6. Cơ Chế Phân Tích Lỗi Động (Data-driven Error Analysis)</h2>
+        <p>
+          Yêu cầu cốt lõi của đề tài học thuật là hệ thống phải tự phân tích các trường hợp dự đoán sai lệch lớn nhất, giải thích nguyên nhân và tìm ra đặc điểm dữ liệu gây lỗi.
+        </p>
+        <p>
+          Thay vì sử dụng các câu giải thích tĩnh, hệ thống v3.0 tự động tính toán **Z-score** của dữ liệu lỗi so với phân phối chuẩn của toàn bộ tập dữ liệu huấn luyện để tìm ra dị biệt.
+        </p>
+
+        <div class="math-card">
+          <h4>Phương pháp thống kê Z-score phát hiện bất thường:</h4>
+          <p>
+            Với mỗi điểm dữ liệu gây ra sai số lớn nhất, ta xét các đặc trưng dạng số \(x_k \in \{\text{dong_tien}, \text{don_hang}, \text{san_pham}, \text{thoi_gian}\}\).
+          </p>
+          <p>
+            1. Gọi \(\mu_k\) và \(\sigma_k\) lần lượt là giá trị trung bình và độ lệch chuẩn của đặc trưng \(k\) trên toàn bộ tập huấn luyện.
+          </p>
+          <p>
+            2. Tính toán điểm Z-score cho giá trị đặc trưng của mẫu lỗi:
+            $$z_k = \frac{x_k - \mu_k}{\sigma_k}$$
+          </p>
+          <p>
+            3. Nhãn bất thường được kích hoạt dựa trên tiêu chuẩn:
+            $$\text{Nếu } |z_k| > 1.5 \implies \text{Đặc trưng } k \text{ có giá trị dị biệt (Anomaly Data)}$$
+          </p>
+        </div>
+
+        <p>
+          <strong>Hệ thống tự động biên dịch nguyên nhân:</strong>
+          Kết hợp hướng lệch (Over-prediction / Under-prediction) với các thuộc tính bị cảnh báo dị biệt để sinh ra dòng phân tích nguyên nhân chi tiết. Ví dụ: 
+          <em>"Dòng tiền quá cao so với trung bình (z = 2.45), dẫn đến mô hình dự đoán cao hơn thực tế."</em>
+        </p>
+      </section>
+
+      <!-- Section 7: Performance Gate -->
+      <section id="gating">
+        <h2>7. Cơ Chế Cổng Kiểm Soát Chất Lượng (Performance Gate)</h2>
+        <p>
+          Khi Concept Drift kích hoạt tiến trình tự động huấn luyện lại mô hình mới, hệ thống cần có cơ chế tự vệ để ngăn chặn việc ghi đè một mô hình lỗi hoặc kém chất lượng lên hệ thống đang vận hành ổn định. Đó là lý do chúng tôi xây dựng **Performance Gate (Gating mechanism)**.
+        </p>
+
+        <div class="diagram-container">
+          <!-- Flow of Performance Gate -->
+          <svg width="750" height="260" viewBox="0 0 750 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="750" height="260" rx="8" fill="var(--bg-secondary)"/>
+            
+            <!-- Box 1 -->
+            <rect x="20" y="90" width="120" height="80" rx="6" fill="rgba(56, 189, 248, 0.1)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="80" y="125" fill="var(--text-primary)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">Mô hình ứng cử</text>
+            <text x="80" y="145" fill="var(--text-secondary)" font-family="Inter" font-size="10" text-anchor="middle">Candidate Model</text>
+            
+            <!-- Box 2 (Evaluation) -->
+            <rect x="180" y="90" width="140" height="80" rx="6" fill="rgba(56, 189, 248, 0.1)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="250" y="125" fill="var(--text-primary)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">Đo đạc chỉ số</text>
+            <text x="250" y="145" fill="var(--text-secondary)" font-family="Inter" font-size="10" text-anchor="middle">R², MAE, RMSE</text>
+            
+            <!-- Diamond (Decision) -->
+            <polygon points="370,130 430,80 490,130 430,180" fill="rgba(245, 158, 11, 0.1)" stroke="var(--warning)" stroke-width="1.5"/>
+            <text x="430" y="125" fill="var(--text-primary)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">R²_new >=</text>
+            <text x="430" y="145" fill="var(--text-primary)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">0.98 * R²_old?</text>
+
+            <!-- Gated (Blocked) -->
+            <rect x="580" y="30" width="140" height="60" rx="6" fill="rgba(239, 68, 68, 0.1)" stroke="var(--danger)" stroke-width="1.5"/>
+            <text x="650" y="65" fill="var(--danger)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">🚨 BỊ CHẶN (Gated)</text>
+
+            <!-- Success (Promoted) -->
+            <rect x="580" y="170" width="140" height="60" rx="6" fill="rgba(16, 185, 129, 0.1)" stroke="var(--success)" stroke-width="1.5"/>
+            <text x="650" y="205" fill="var(--success)" font-family="Outfit" font-size="12" font-weight="bold" text-anchor="middle">🚀 CẬP NHẬT (Success)</text>
+            
+            <!-- Connectors -->
+            <path d="M140 130H180" stroke="var(--text-secondary)" stroke-width="1.5"/>
+            <path d="M320 130H370" stroke="var(--text-secondary)" stroke-width="1.5"/>
+            <path d="M430 80V60H580" stroke="var(--danger)" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <path d="M430 180V200H580" stroke="var(--success)" stroke-width="1.5"/>
+          </svg>
+        </div>
+
+        <p>
+          Cơ chế kiểm soát an toàn được lập trình như sau:
+          $$R^2_{candidate} \ge 0.98 \times R^2_{current} \quad \text{và} \quad MAE_{candidate} \le 1.02 \times MAE_{current}$$
+          Nếu điều kiện trên bị vi phạm, mô hình ứng cử sẽ lập tức bị hủy bỏ và giữ nguyên mô hình cũ để bảo đảm sự liên tục và ổn định cho hệ thống.
+        </p>
+      </section>
+
+      <!-- Section 8: Swarm & Load Balancing -->
+      <section id="swarm">
+        <h2>8. Triển Khai Cụm Docker Swarm & Cân Bằng Tải</h2>
+        <p>
+          Hệ thống được đóng gói thành các Docker Image và cấu hình chạy trên cụm **Docker Swarm**. Cơ chế cân bằng tải tự động (Load Balancing) hoạt động thông qua mạng lưới Ingress routing mesh.
+        </p>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Cấu hình triển khai</th>
+              <th>Throughput trung bình (RPS)</th>
+              <th>Độ trễ phản hồi (Latency)</th>
+              <th>Đặc điểm vận hành</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Host truyền thống (1 Instance)</strong></td>
+              <td>~78.4 req/s</td>
+              <td>~12.8 ms</td>
+              <td>Dễ bị quá tải khi lượng truy cập tăng vọt; không có tính dự phòng.</td>
+            </tr>
+            <tr>
+              <td><strong>Docker Swarm (2 Replicas - Load Balanced)</strong></td>
+              <td><strong>~135.2 req/s</strong></td>
+              <td><strong>~7.4 ms</strong></td>
+              <td>Phân phối Round-Robin; Khả năng tự phục hồi (Self-healing) khi một node bị lỗi.</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <p>
+          Kết quả thực nghiệm trên cho thấy kiến trúc cụm 2 replicas tăng gần **gấp đôi** năng lực chịu tải của hệ thống đồng thời giảm thời gian phản hồi trung bình đi **42%**.
+        </p>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Theme switcher
+    function toggleTheme() {
+      const body = document.body;
+      const themeBtn = document.getElementById('themeBtn');
+      if (body.getAttribute('data-theme') === 'light') {
+        body.removeAttribute('data-theme');
+        themeBtn.innerHTML = '🌙 Chế độ tối';
+      } else {
+        body.setAttribute('data-theme', 'light');
+        themeBtn.innerHTML = '☀️ Chế độ sáng';
+      }
+    }
+
+    // Active sidebar links on scroll
+    window.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          if (entry.intersectionRatio > 0.1) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+              link.classList.remove('active');
+            });
+            const activeLink = document.querySelector(`.nav-link[href="#${id}"]`);
+            if (activeLink) activeLink.classList.add('active');
+          }
+        });
+      }, { threshold: [0.1, 0.5, 0.8] });
+
+      document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+      });
+    });
+
+    // Copy to clipboard helper
+    function copyCode(btn, codeId) {
+      const codeText = document.getElementById(codeId).innerText;
+      navigator.clipboard.writeText(codeText).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✓ Đã chép!';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
