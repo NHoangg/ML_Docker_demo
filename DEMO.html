@@ -291,101 +291,118 @@ pip install -r api/requirements.txt
 <h1>3. Khởi chạy FastAPI API server</h1>
 uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
 </code></pre>
-<h3>Bước 2: Thiết lập và chạy Frontend Dashboard</h3>
-Mở một cửa sổ Terminal mới tại thư mục dự án:
-<pre><code># 1. Di chuyển vào thư mục dashboard
-cd dashboard
-<h1>2. Cài đặt các gói node packages</h1>
-npm install
-<h1>3. Khởi chạy React Dashboard dev server</h1>
-npm run dev
-</code></pre>
-<strong>Các địa chỉ dịch vụ:</strong>
-<ul>
-<li>🖥️ <strong>Dashboard Web:</strong> http://localhost:5173</li>
-<li>🔗 <strong>API Swagger Docs:</strong> http://localhost:8000/docs</li>
-<li>🔗 <strong>API Endpoint đánh giá:</strong> http://localhost:8000/analytics/evaluation</li>
-<p></ul><br>---</p>
 <h2>Kịch bản 1: Huấn luyện và đánh giá Baseline</h2>
-<div class="callout"><p><strong>Chứng minh:</strong> Tiền xử lý dữ liệu + So sánh Baseline (LR vs DT vs RF)</p></div>
-<h3>Bước 1.1 – Xem dữ liệu huấn luyện</h3>
+<div class="callout"><p><strong>Chứng minh:</strong> Quy trình xử lý tiền xử lý dữ liệu và So sánh mô hình nền (Linear Regression vs Decision Tree vs Random Forest) để tìm thuật toán tối ưu.</p></div>
+<h3>Bước 1.1 – Khám phá và xem cấu trúc dữ liệu huấn luyện</h3>
+Chạy lệnh Python nhanh dưới đây từ Terminal để xem trước 5 dòng đầu tiên của tập dữ liệu huấn luyện thực tế:
 <pre><code>python -c "import pandas as pd; df = pd.read_csv('data/raw/revenue_sample.csv'); print(df.head(5).to_string())"
 </code></pre>
-*Chỉ ra:* Dữ liệu đa chiều có các biến số như <code>dong_tien</code>, <code>don_hang</code> và các biến phân loại <code>khu_vuc</code>, <code>cua_hang</code>, <code>nhom_san_pham</code>.
-<h3>Bước 1.2 – Chạy script so sánh Baseline</h3>
-<pre><code>python model/baseline_comparison.py
-</code></pre>
-<strong>Kết quả mong đợi:</strong>
-<pre><code>Starting baseline model comparison...
-Finished Linear Regression         | R2: -0.0963 | MAE: 19485.66 | Train Time: 0.0148s
-Finished Decision Tree             | R2: 0.9868 | MAE: 4197.24 | Train Time: 0.0085s
-Finished Random Forest (Proposed)  | R2: 0.9922 | MAE: 2580.38 | Train Time: 0.3046s
-</code></pre>
-*Chỉ ra:* 
+<strong>Giải thích cấu trúc dữ liệu trả về:</strong>
 <ul>
-<li>Mô hình Linear Regression thất bại ( \(R^2 < 0\) ) do dữ liệu phi tuyến.</li>
-<li>Mô hình Random Forest (Đề xuất) đạt độ chính xác cao nhất với  \(R^2 \approx 0.9922\)  và sai số MAE thấp nhất (~2580 VNĐ).</li>
-<li>File so sánh được lưu vào <code>data/processed/model_comparison.json</code>.</li>
-<p></ul><br>---</p>
-<h2>Kịch bản 2: Dự đoán đơn lẻ qua API kèm XAI</h2>
-<div class="callout"><p><strong>Chứng minh:</strong> REST API + Tính giải thích cục bộ Explainable AI (XAI)</p></div>
-<h3>Bước 2.1 – Gọi API qua curl</h3>
-<pre><code>curl -X 'POST' \
-  'http://localhost:8000/predict' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "thoi_gian": 12,
-  "dong_tien": 32000,
-  "don_hang": 1500,
-  "san_pham": 3000,
-  "khu_vuc": "Bac",
-  "cua_hang": "CH1",
-  "nhom_san_pham": "DienTu"
-}'
+<li><strong>thoi_gian (tháng):</strong> Giá trị số từ 1 đến 12 thể hiện các tháng trong năm (đặc trưng tính mùa vụ).</li>
+<li><strong>dong_tien (VNĐ):</strong> Vốn xoay vòng hoạt động của cửa hàng tại tháng đó.</li>
+<li><strong>don_hang:</strong> Tổng số lượng đơn hàng phát sinh trong tháng.</li>
+<li><strong>san_pham:</strong> Tổng số sản phẩm bán ra được.</li>
+<li><strong>khu_vuc:</strong> Biến phân loại gồm 3 vùng thị trường (<code>Bac</code> - Bắc, <code>Trung</code> - Trung, <code>Nam</code> - Nam).</li>
+<li><strong>cua_hang:</strong> Mã định danh của chuỗi cửa hàng tương ứng (<code>CH1</code>, <code>CH2</code>, <code>CH3</code>).</li>
+<li><strong>nhom_san_pham:</strong> Ngành hàng sản phẩm bán lẻ (<code>ThucPham</code> - Thực phẩm, <code>GiaDung</code> - Gia dụng, <code>DienTu</code> - Điện tử).</li>
+<li><strong>revenue (VNĐ):</strong> Doanh thu thực tế đạt được (Nhãn mục tiêu  \(y\) ).</li>
+<p></ul><br><h3>Bước 1.2 – Chạy script so sánh các mô hình Baseline</h3><br>Chạy script huấn luyện so sánh tự động để kiểm chứng hiệu năng R² và MAE của cả 3 mô hình thuật toán nền tảng:<br><pre><code>python model/baseline_comparison.py<br></code></pre><br><strong>Ý nghĩa kỹ thuật của script:</strong><br>1. Đọc dữ liệu từ <code>data/raw/revenue_sample.csv</code>.<br>2. Phân tách tập dữ liệu thành <code>Train set (80%)</code> và <code>Test set (20%)</code>.<br>3. Áp dụng kỹ thuật mã hóa One-Hot Encoding cho các biến phân loại để chuẩn bị dữ liệu đầu vào phù hợp.<br>4. Huấn luyện đồng thời 3 mô hình: <strong>Linear Regression (Tuyến tính)</strong>, <strong>Decision Tree (Cây quyết định)</strong>, và <strong>Random Forest (Rừng ngẫu nhiên)</strong>.<br>5. Đo lường thời gian huấn luyện và tính toán các thang đo chất lượng khoa học: MAE, RMSE, và R² Score.<br>6. Lưu bảng so sánh hiệu năng vào tệp cấu hình JSON tại <code>data/processed/model_comparison.json</code>.</p>
+<p><strong>Kết quả mong đợi trên Console:</strong><br><pre><code>Starting baseline model comparison...<br>Finished Linear Regression         | R2: -0.0963 | MAE: 19485.66 | Train Time: 0.0148s<br>Finished Decision Tree             | R2: 0.9868 | MAE: 4197.24 | Train Time: 0.0085s<br>Finished Random Forest (Proposed)  | R2: 0.9922 | MAE: 2580.38 | Train Time: 0.3046s<br></code></pre><br>*Nhận xét:* Mô hình Tuyến tính (Linear Regression) thất bại hoàn toàn do doanh thu bán lẻ có tính chất phi tuyến phức tạp ( \(R^2 < 0\) ). Mô hình Random Forest đề xuất đạt chất lượng vượt trội nhất với hệ số xác định  \(R^2 \approx 0.99\)  và sai số trung bình (MAE) cực thấp chỉ khoảng ~2,580 VNĐ.</p>
+<p>---</p>
+<h2>Kịch bản 2: Dự đoán đơn lẻ qua API kèm giải thích XAI</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Khả năng giao tiếp REST API và tính toán đóng góp cục bộ Explainable AI (XAI) thời gian thực theo phương pháp Perturbation.</p></div>
+<h3>Bước 2.1 – Gửi truy vấn dự toán đơn lẻ đến API</h3>
+Thực hiện gửi một bản ghi bán lẻ thông qua phương thức POST tới cổng API dịch vụ để kiểm tra kết quả dự toán và phân tích đóng góp đặc trưng.
+<strong>Cách 1: Sử dụng cURL.exe trên Windows Command Prompt hoặc Git Bash:</strong>
+<pre><code>curl.exe -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d "{\"thoi_gian\":12,\"dong_tien\":32000,\"don_hang\":1500,\"san_pham\":3000,\"khu_vuc\":\"Bac\",\"cua_hang\":\"CH1\",\"nhom_san_pham\":\"DienTu\"}"
 </code></pre>
-<p><strong>Output mong đợi:</strong><br><pre><code>{<br>  "predicted_revenue": 612000.0,<br>  "contributions": {<br>    "thoi_gian": 8200.0,<br>    "dong_tien": 412500.0,<br>    "don_hang": 32100.0,<br>    "san_pham": -1500.0,<br>    "khu_vuc": 12000.0,<br>    "cua_hang": 4500.0,<br>    "nhom_san_pham": 85000.0<br>  }<br>}<br></code></pre><br>*Chỉ ra:* API trả về không chỉ con số doanh thu dự đoán mà cả phần đóng góp cục bộ (XAI contributions). Ví dụ: danh mục <code>nhom_san_pham</code> đóng góp làm tăng doanh thu lên <strong>85.000 VNĐ</strong> so với baseline, trong khi lượng tồn kho <code>san_pham</code> kéo giảm <strong>1.500 VNĐ</strong>.</p>
-<h3>Bước 2.2 – Kiểm tra trên Dashboard</h3>
-1. Mở tab <strong>"Dự đoán & XAI"</strong> trên Dashboard.
-2. Thay đổi các tham số đầu vào và nhấn nút <strong>⚡ Dự đoán doanh thu</strong>.
-3. Quan sát: Biểu đồ cột ngang hiển thị đóng góp đặc trưng (màu xanh lá thể hiện đóng góp tăng, màu đỏ thể hiện đóng góp giảm).
+<strong>Cách 2: Sử dụng lệnh gốc của Windows PowerShell (Tránh trùng alias cURL):</strong>
+<pre><code>Invoke-RestMethod -Uri http://localhost:8000/predict -Method Post -ContentType "application/json" -Body '{"thoi_gian": 12, "dong_tien": 32000, "don_hang": 1500, "san_pham": 3000, "khu_vuc": "Bac", "cua_hang": "CH1", "nhom_san_pham": "DienTu"}'
+</code></pre>
+<strong>Chi tiết các thông số đầu vào gửi đi:</strong>
+<ul>
+<li><code>"thoi_gian": 12</code> : Tháng 12 (mùa mua sắm cuối năm).</li>
+<li><code>"dong_tien": 32000</code> : Vòng xoay tiền vốn là 32,000,000 VNĐ.</li>
+<li><code>"don_hang": 1500</code> : Số lượng đơn đặt hàng là 1,500 đơn.</li>
+<li><code>"san_pham": 3000</code> : Lượng sản phẩm bán là 3,000 đơn vị.</li>
+<li><code>"khu_vuc": "Bac"</code>, <code>"cua_hang": "CH1"</code>, <code>"nhom_san_pham": "DienTu"</code> : Cửa hàng CH1 miền Bắc bán ngành hàng Điện tử.</li>
+</ul>
+<strong>Kết quả JSON nhận về:</strong>
+<pre><code>{
+  "predicted_revenue": 612000.0,
+  "contributions": {
+    "thoi_gian": 8200.0,
+    "dong_tien": 412500.0,
+    "don_hang": 32100.0,
+    "san_pham": -1500.0,
+    "khu_vuc": 12000.0,
+    "cua_hang": 4500.0,
+    "nhom_san_pham": 85000.0
+  }
+}
+</code></pre>
+<strong>Giải thích kết quả XAI:</strong>
+API trả về doanh thu dự báo là <strong>612.000.000 VNĐ</strong> cùng với đóng góp tương ứng của từng thuộc tính so với giá trị mặc định (baseline). 
+<ul>
+<li>Dòng tiền lớn đóng góp tích cực nhiều nhất kéo tăng <strong>+412.500.000 VNĐ</strong>.</li>
+<li>Danh mục ngành hàng Điện tử kéo tăng thêm <strong>+85.000.000 VNĐ</strong> doanh thu.</li>
+<li>Tuy nhiên, tồn kho sản phẩm quá cao làm giảm nhẹ doanh thu <strong>-1.500.000 VNĐ</strong> (hiển thị màu đỏ trên UI).</li>
+<p></ul><br><h3>Bước 2.2 – Kiểm tra trên giao diện Web Dashboard</h3><br>1. Mở trình duyệt truy cập Tab <strong>"Dự đoán & XAI"</strong>.<br>2. Thay đổi các con số trên bảng nhập liệu hoặc chọn nhanh từ phần gợi ý kịch bản.<br>3. Bấm <strong>⚡ Dự đoán doanh thu</strong> và quan sát biểu đồ đóng góp đặc trưng trực quan của XAI (Màu xanh: tăng doanh thu, Màu đỏ: giảm doanh thu).</p>
 <p>---</p>
 <h2>Kịch bản 3: Dự đoán hàng loạt (Batch CSV)</h2>
-<div class="callout"><p><strong>Chứng minh:</strong> API tải lên tệp CSV và trả về mảng kết quả dự báo.</p></div>
-<h3>Bước 3.1 – Tạo file test CSV <code>test_batch.csv</code></h3>
+<div class="callout"><p><strong>Chứng minh:</strong> Khả năng xử lý tệp tin đầu vào (Multipart upload), chuyển đổi cấu trúc DataFrame và trả về kết quả dự đoán hàng loạt.</p></div>
+<h3>Bước 3.1 – Tạo hoặc kiểm tra tệp tin CSV mẫu</h3>
+Hệ thống đã chuẩn bị sẵn tệp tin <code>test_batch.csv</code> ở thư mục gốc của dự án chứa các thông tin cần suy luận hàng loạt:
 <pre><code>thoi_gian,dong_tien,don_hang,san_pham,khu_vuc,cua_hang,nhom_san_pham
-6,28000,800,1500,Nam,CH3,DienTu
-12,50000,1200,2500,Bac,CH1,GiaDung
-3,20000,600,1200,Trung,CH2,ThucPham
+10,32000,880,1700,Nam,CH3,ThucPham
+11,45000,1100,2200,Trung,CH2,DienTu
+12,50000,1200,2500,Bac,CH1,DienTu
 </code></pre>
-<h3>Bước 3.2 – Gọi API batch upload</h3>
-<pre><code>curl -X POST http://localhost:8000/predict/batch -F "file=@test_batch.csv"
+<h3>Bước 3.2 – Gửi tệp tin CSV qua API Batch</h3>
+Thực hiện upload tệp tin CSV để API tự động phân tích và tính toán đồng thời các bản ghi dữ liệu.
+<strong>Cách 1: Chạy lệnh cURL.exe từ Terminal:</strong>
+<pre><code>curl.exe -X POST http://localhost:8000/predict/batch -F "file=@test_batch.csv"
 </code></pre>
-<h3>Bước 3.3 – Kiểm tra trên Dashboard</h3>
-1. Chọn tab <strong>"Batch CSV"</strong>.
-2. Chọn tệp <code>test_batch.csv</code> tải lên.
-3. Hệ thống phân tích tức thì và xuất bảng kết quả dự đoán chi tiết từng dòng.
+<strong>Cách 2: Chạy lệnh gốc của Windows PowerShell:</strong>
+<pre><code>Invoke-RestMethod -Uri http://localhost:8000/predict/batch -Method Post -Form @{file=[System.IO.FileInfo]"test_batch.csv"}
+</code></pre>
+<p><strong>Kịch bản xử lý của API phía Backend:</strong><br>1. Tiếp nhận file tải lên thông qua middleware <code>UploadFile</code>.<br>2. Kiểm tra định dạng đuôi file (<code>.csv</code>).<br>3. Sử dụng <code>pandas.read_csv()</code> để nạp file vào bộ nhớ dưới dạng DataFrame.<br>4. Kiểm duyệt các tiêu đề cột bắt buộc. Nếu thiếu bất kỳ cột nào, API sẽ lập tức trả về lỗi <code>HTTP 400</code>.<br>5. Đưa dữ liệu qua pipeline Random Forest để suy luận hàng loạt.<br>6. Thêm cột <code>predicted_revenue</code> vào DataFrame và trả về toàn bộ dữ liệu kèm kết quả dự đoán dạng JSON.</p>
+<p><strong>Kết quả nhận được:</strong><br>Mảng JSON chi tiết chứa đầy đủ các bản ghi đã được đính kèm trường <code>"predicted_revenue"</code> cụ thể cho từng chuỗi cửa hàng.</p>
+<h3>Bước 3.3 – Tải tệp lên giao diện Dashboard</h3>
+1. Truy cập tab <strong>"Batch CSV"</strong> trên giao diện Web.
+2. Click nút tải file lên, chọn tệp tin <strong><code>test_batch.csv</code></strong> tại thư mục gốc của dự án.
+3. Kết quả dự đoán chi tiết của 10 cửa hàng sẽ hiển thị trực quan.
 <p>---</p>
 <h2>Kịch bản 4: Đánh giá mô hình & Error Analysis trực quan</h2>
-<div class="callout"><p><strong>Chứng minh:</strong> Trực quan hóa thực nghiệm, phân tích lỗi (Error Analysis) và Realtime streaming.</p></div>
-<h3>Bước 4.1 – Xem tab "Đánh giá & Lỗi" trên Dashboard</h3>
-1. Click vào tab <strong>"Đánh giá & Lỗi"</strong>.
-2. Biểu đồ <strong>Thực tế vs Dự đoán</strong> (vẽ 50 điểm test mẫu) hiển thị sự bám sát cực tốt của mô hình Random Forest đối với doanh thu thực.
-3. Biểu đồ <strong>Độ quan trọng đặc trưng</strong> chỉ ra biến nào ảnh hưởng nhất toàn cục (ví dụ: Dòng tiền chiếm tỉ lệ cao nhất).
-4. Biểu đồ <strong>Phân phối sai số</strong> (Residuals) thể hiện các lỗi tập trung sát mốc 0.
-5. Bảng <strong>Error Analysis</strong> hiển thị 5 trường hợp dự đoán sai lệch nhiều nhất tập test kèm lý do giải thích tự động từ chuyên gia ML.
-6. Biểu đồ <strong>Giám sát Concept Drift (Page-Hinkley)</strong> hiển thị điểm tích lũy sai số (Drift Score) so với ngưỡng kích hoạt trôi lệch dữ liệu.
-<h3>Bước 4.2 – Realtime Live Stream</h3>
-1. Click vào tab <strong>"Realtime Live"</strong>.
-2. Nhấn <strong>▶ Bắt đầu Realtime</strong> để chạy mô phỏng luồng dữ liệu cập nhật mỗi 3s.
-3. Nhìn biểu đồ đường chạy động so sánh thực tế vs dự đoán của 3 khu vực địa lý cùng một lúc.
-<p>---</p>
-<h2>Kịch bản 5: Huấn luyện tự thích ứng có Gating</h2>
-<div class="callout"><p><strong>Chứng minh:</strong> Cơ chế Performance Gate ngăn chặn sự suy giảm của mô hình.</p></div>
-<h3>Bước 5.1 – Kích hoạt retrain thủ công</h3>
-<pre><code>curl -X POST http://localhost:8000/retrain
+<div class="callout"><p><strong>Chứng minh:</strong> Khả năng tự phát hiện lỗi dựa trên thống kê độ lệch Z-Score động và giám sát Concept Drift (Page-Hinkley) từ chuỗi sai số.</p></div>
+<h3>Bước 4.1 – Gọi API phân tích chất lượng từ Terminal</h3>
+Bạn có thể gọi trực tiếp API để xem các tính toán thống kê lỗi và concept drift từ Backend:
+<pre><code>curl.exe http://localhost:8000/analytics/summary
 </code></pre>
-<strong>Output nếu vượt qua chốt kiểm soát:</strong>
+<strong>Phân tích dữ liệu trả về từ API:</strong>
+<ul>
+<li><code>chart_points</code>: Tập 100 điểm dữ liệu đối sánh thực tế vs dự đoán phục vụ việc vẽ đồ thị độ chính xác.</li>
+<li><code>feature_importances</code>: Chỉ số đóng góp toàn cục của các đặc trưng (giúp chứng minh biến <code>dong_tien</code> và <code>don_hang</code> là 2 yếu tố tác động mạnh nhất).</li>
+<li><code>error_analysis</code>: Danh sách 5 dòng dự báo sai nhiều nhất. Backend tự động tính Z-Score của các biến đầu vào để sinh ra giải thích cụ thể: *"Dự đoán thấp hơn thực tế do cửa hàng có lượng đơn hàng vượt mức trung bình đáng kể ( \(z > 1.5\) )..."*.</li>
+<li><code>drift_history</code>: Lịch sử điểm tích lũy Page-Hinkley để giám sát trôi lệch dữ liệu.</li>
+</ul>
+<h3>Bước 4.2 – Xem các công cụ trực quan trên giao diện</h3>
+1. Mở tab <strong>"Đánh giá & Lỗi"</strong> để kiểm tra:
+<ul>
+<li>Đồ thị Scatter đối sánh giúp quan định dạng độ lệch tuyến tính.</li>
+<li>Thẻ phân tích lỗi tự động bôi màu vàng cảnh báo các thuộc tính bị bất thường gây sai lệch dự toán.</li>
+<li>Biểu đồ đường <strong>Page-Hinkley Concept Drift</strong> trực quan.</li>
+<p></ul>2. Chuyển qua tab <strong>"Realtime Live"</strong> bấm <strong>▶ Bắt đầu Realtime</strong> để theo dõi luồng giả lập thay đổi của doanh số trôi chảy mỗi 3 giây.</p>
+<p>---</p>
+<h2>Kịch bản 5: Huấn luyện tự thích ứng và chốt chặn Performance Gate</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Chốt an toàn ngăn chặn sự suy giảm hiệu năng khi huấn luyện lại mô hình mới (Performance Gate).</p></div>
+<h3>Bước 5.1 – Kích hoạt tiến trình huấn luyện lại qua API</h3>
+Gửi yêu cầu huấn luyện lại mô hình từ Terminal để kích hoạt quy trình kiểm định chất lượng:
+<pre><code>curl.exe -X POST http://localhost:8000/retrain
+</code></pre>
+<p><strong>Quy trình kiểm định ngầm của hệ thống (Performance Gate):</strong><br>1. Backend gọi hàm huấn luyện mô hình mới (Candidate model) trên tập dữ liệu mở rộng.<br>2. Đo lường sai số MAE và R² của mô hình ứng viên mới này trên tập dữ liệu test.<br>3. So sánh hiệu năng với mô hình đang vận hành (Current model).<br>4. Áp dụng điều kiện chặn:<br>   <div class="math-box">$ \(\text{Nếu } R^2_{new} < R^2_{old} - 0.02 \implies \text{Từ chối (Gated)}\)  \(</div><br>5. Nếu mô hình mới đạt chuẩn (không bị giảm R² quá 2%), hệ thống ghi đè file <code>model.pkl</code> và tự động hot-reload mô hình mới vào bộ nhớ. Trạng thái trả về sẽ là <code>success</code>. Nếu không đạt chuẩn, mô hình mới bị hủy và trạng thái trả về là <code>gated</code>.</p>
+<strong>Mẫu kết quả JSON trả về nếu chốt chặn được thông qua (Success):</strong>
 <pre><code>{
   "message": "Retraining triggered",
   "result": {
@@ -396,7 +413,7 @@ Finished Random Forest (Proposed)  | R2: 0.9922 | MAE: 2580.38 | Train Time: 0.3
   }
 }
 </code></pre>
-<p><strong>Output nếu mô hình mới bị suy giảm chất lượng (bị chặn):</strong><br><pre><code>{<br>  "message": "Retraining triggered",<br>  "result": {<br>    "time": "2026-05-20T11:45:00Z",<br>    "metrics": {"mae": 2580.38, "rmse": 5452.27, "r2": 0.9922},<br>    "candidate_metrics": {"mae": 4500.22, "rmse": 8900.54, "r2": 0.9650},<br>    "status": "gated"<br>  }<br>}<br></code></pre><br>*Chỉ ra:* Trạng thái trả về là <code>gated</code> nếu mô hình mới huấn luyện bị giảm chất lượng hơn 2% so với mô hình đang chạy. Hệ thống tự động từ chối ghi đè file <code>model.pkl</code> để giữ tính ổn định cho ứng dụng.</p>
+<p><strong>Mẫu kết quả JSON trả về nếu mô hình mới bị suy giảm chất lượng và bị chặn (Gated):</strong><br><pre><code>{<br>  "message": "Retraining triggered",<br>  "result": {<br>    "time": "2026-05-20T11:45:00Z",<br>    "metrics": {"mae": 2580.38, "rmse": 5452.27, "r2": 0.9922},<br>    "candidate_metrics": {"mae": 4500.22, "rmse": 8900.54, "r2": 0.9650},<br>    "status": "gated"<br>  }<br>}<br></code></pre><br>*Chỉ ra:* Trạng thái trả về là <code>gated</code> nếu mô hình mới huấn luyện bị giảm chất lượng hơn 2% so với mô hình đang chạy. Hệ thống tự động từ chối ghi đè file <code>model.pkl</code> để giữ tính ổn định cho ứng dụng.</p>
 <p>---</p>
 <h2>Kịch bản 6: Docker Swarm & Benchmark hiệu năng</h2>
 <div class="callout"><p><strong>Chứng minh:</strong> Triển khai Multi-replica, Load Balancing trên Docker Swarm và đo lường hiệu năng.</p></div>
@@ -416,7 +433,7 @@ Finished Random Forest (Proposed)  | R2: 0.9922 | MAE: 2580.38 | Train Time: 0.3
 <h3>2.1 – Kịch bản 1: Baseline Comparison trên UI</h3>
 1. Trên tab <strong>"Hướng dẫn Demo"</strong>, tìm thẻ <strong>"Kịch bản 1"</strong>.
 2. Click nút <strong>"📊 Xem so sánh Baseline"</strong>.
-3. Hệ thống sẽ tự động chuyển hướng bạn sang tab <strong>Baseline</strong> để hiển thị bảng số liệu chi tiết và 2 biểu đồ cột so sánh trực quan chỉ số  \(R^2\)  và sai số MAE giữa Linear Regression, Decision Tree và Random Forest.
+3. Hệ thống sẽ tự động chuyển hướng bạn sang tab <strong>Baseline</strong> để hiển thị bảng số liệu chi tiết và 2 biểu đồ cột so sánh trực quan chỉ số \) R^2 \( và sai số MAE giữa Linear Regression, Decision Tree và Random Forest.
 <h3>2.2 – Kịch bản 2: Dự đoán đơn lẻ & XAI trên UI</h3>
 1. Tìm thẻ <strong>"Kịch bản 2"</strong> trên trang Hướng dẫn.
 2. Click nút <strong>"🎯 Tự động điền & chạy XAI"</strong>.
@@ -432,7 +449,7 @@ Finished Random Forest (Proposed)  | R2: 0.9922 | MAE: 2580.38 | Train Time: 0.3
 3. Hệ thống sẽ chuyển hướng đến tab <strong>"Đánh giá & Lỗi"</strong>, hiển thị:
 <ul>
 <li>Biểu đồ đường <strong>Thực tế vs Dự toán</strong> và độ quan trọng đặc trưng toàn cục.</li>
-<li>Thẻ xếp hạng phân tích lỗi (<strong>Error Analysis Cards</strong>) - tự động bôi vàng cảnh báo các thuộc tính có Z-score bất thường ( \(z > 1.5\) ) kèm giải thích chi tiết.</li>
+<li>Thẻ xếp hạng phân tích lỗi (<strong>Error Analysis Cards</strong>) - tự động bôi vàng cảnh báo các thuộc tính có Z-score bất thường (\) z > 1.5$) kèm giải thích chi tiết.</li>
 <li>Biểu đồ theo dõi độ lệch phân phối <strong>Page-Hinkley Concept Drift</strong>.</li>
 <p></ul><br><h3>2.5 – Kịch bản 5: Kiểm soát chất lượng Retrain (Performance Gate) trên UI</h3><br>1. Tìm thẻ <strong>"Kịch bản 5"</strong> trên trang Hướng dẫn.<br>2. Click nút <strong>"⚡ Kích hoạt Retrain Ngay Lập Tức (Manual Trigger)"</strong>.<br>3. Dashboard sẽ gọi trực tiếp API <code>/retrain</code> nền và hiển thị trực tiếp một hộp thoại nhật ký (logs) màu xanh lá ở phía dưới. Nhật ký này cho biết trạng thái huấn luyện là <code>success</code> (Mô hình tốt hơn được cập nhật) hay <code>gated</code> (Bị chặn do chất lượng kém hơn mô hình cũ).</p>
 <h3>2.6 – Kịch bản 6: Đánh giá hiệu năng Swarm Load Balancing trên UI</h3>
