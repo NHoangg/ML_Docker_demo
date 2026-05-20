@@ -21,21 +21,40 @@
 
 ---
 
-## 🔧 Chuẩn bị trước khi demo
+## 🔧 Thiết lập môi trường và Khởi chạy (Setup & Run)
 
-Khởi chạy FastAPI API server và React Dashboard trên máy chủ:
+Thực hiện các bước sau để thiết lập môi trường và khởi chạy ứng dụng từ đầu:
 
-```bash
-# Trong thư mục dự án, chạy API ở cổng 8000
-uvicorn api.main:app --reload
+### Bước 1: Thiết lập và chạy Backend API
+Mở một cửa sổ Terminal (PowerShell) tại thư mục dự án:
+```powershell
+# 1. Kích hoạt môi trường ảo Python
+.\.venv\Scripts\activate
 
-# Trong thư mục dashboard, chạy React ở cổng 5173
+# 2. Cài đặt các thư viện backend cần thiết
+pip install -r api/requirements.txt
+
+# 3. Khởi chạy FastAPI API server
+uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+### Bước 2: Thiết lập và chạy Frontend Dashboard
+Mở một cửa sổ Terminal mới tại thư mục dự án:
+```powershell
+# 1. Di chuyển vào thư mục dashboard
+cd dashboard
+
+# 2. Cài đặt các gói node packages
+npm install
+
+# 3. Khởi chạy React Dashboard dev server
 npm run dev
 ```
 
-**Các URL cần mở sẵn:**
-- 🔗 API Docs: http://localhost:8000/docs
-- 🖥️ Dashboard: http://localhost:5173
+**Các địa chỉ dịch vụ:**
+*   🖥️ **Dashboard Web:** http://localhost:5173
+*   🔗 **API Swagger Docs:** http://localhost:8000/docs
+*   🔗 **API Endpoint đánh giá:** http://localhost:8000/analytics/evaluation
 
 ---
 
@@ -207,3 +226,43 @@ python cluster/benchmark.py
 2. Kiểm tra biểu đồ so sánh:
    - **Throughput (RPS):** Docker Swarm (2 Replicas) đạt **~135 RPS** vượt trội so với 1 container thông thường (~78 RPS).
    - **Độ trễ (Latency ms):** Độ trễ trung bình của Swarm chỉ khoảng **7.4 ms** do tải được định tuyến vòng (Round-Robin) tới các bản sao container khác nhau.
+
+---
+
+## 🖥️ Phần 2: Hướng dẫn chạy Demo trực quan trên UI (Interactive UI Guide)
+
+Bản cập nhật v3.0 đã tích hợp trực tiếp một trang **"Hướng dẫn Demo" (Demo Shell)** làm màn hình mặc định khi bạn truy cập Dashboard. Bạn có thể dễ dàng kích hoạt và theo dõi các kịch bản chỉ với các cú click chuột.
+
+### 2.1 – Kịch bản 1: Baseline Comparison trên UI
+1. Trên tab **"Hướng dẫn Demo"**, tìm thẻ **"Kịch bản 1"**.
+2. Click nút **"📊 Xem so sánh Baseline"**.
+3. Hệ thống sẽ tự động chuyển hướng bạn sang tab **Baseline** để hiển thị bảng số liệu chi tiết và 2 biểu đồ cột so sánh trực quan chỉ số $R^2$ và sai số MAE giữa Linear Regression, Decision Tree và Random Forest.
+
+### 2.2 – Kịch bản 2: Dự đoán đơn lẻ & XAI trên UI
+1. Tìm thẻ **"Kịch bản 2"** trên trang Hướng dẫn.
+2. Click nút **"🎯 Tự động điền & chạy XAI"**.
+3. Hệ thống sẽ tự động chuyển sang tab **"Dự đoán & XAI"**, điền các giá trị mẫu (Tháng 12, Dòng tiền 32K, Đơn hàng 1500, Sản phẩm 3000, Cửa hàng 1, Khu vực Bắc, Nhóm Điện tử) và thực thi dự đoán ngay lập tức.
+4. Bạn sẽ thấy kết quả dự đoán cùng biểu đồ cột ngang thể hiện trực quan mức độ đóng góp cục bộ (XAI) của từng biến số.
+
+### 2.3 – Kịch bản 3: Dự đoán hàng loạt (Batch CSV) trên UI
+1. Tìm thẻ **"Kịch bản 3"** trên trang Hướng dẫn.
+2. Click nút **"📂 Chuyển sang Batch CSV"**.
+3. Hệ thống chuyển sang tab **Batch CSV**, nơi bạn chỉ cần nhấn chọn file `test_batch.csv` và hệ thống sẽ xử lý hiển thị bảng kết quả cho bạn.
+
+### 2.4 – Kịch bản 4: Đánh giá sai số & Drift trên UI
+1. Tìm thẻ **"Kịch bản 4"**.
+2. Click nút **"📈 Xem Đánh giá & Drift"**.
+3. Hệ thống sẽ chuyển hướng đến tab **"Đánh giá & Lỗi"**, hiển thị:
+   - Biểu đồ đường **Thực tế vs Dự toán** và độ quan trọng đặc trưng toàn cục.
+   - Thẻ xếp hạng phân tích lỗi (**Error Analysis Cards**) - tự động bôi vàng cảnh báo các thuộc tính có Z-score bất thường ($z > 1.5$) kèm giải thích chi tiết.
+   - Biểu đồ theo dõi độ lệch phân phối **Page-Hinkley Concept Drift**.
+
+### 2.5 – Kịch bản 5: Kiểm soát chất lượng Retrain (Performance Gate) trên UI
+1. Tìm thẻ **"Kịch bản 5"** trên trang Hướng dẫn.
+2. Click nút **"⚡ Kích hoạt Retrain Ngay Lập Tức (Manual Trigger)"**.
+3. Dashboard sẽ gọi trực tiếp API `/retrain` nền và hiển thị trực tiếp một hộp thoại nhật ký (logs) màu xanh lá ở phía dưới. Nhật ký này cho biết trạng thái huấn luyện là `success` (Mô hình tốt hơn được cập nhật) hay `gated` (Bị chặn do chất lượng kém hơn mô hình cũ).
+
+### 2.6 – Kịch bản 6: Đánh giá hiệu năng Swarm Load Balancing trên UI
+1. Tìm thẻ **"Kịch bản 6"**.
+2. Click nút **"🐳 Xem biểu đồ Docker Swarm"**.
+3. Hệ thống chuyển đến tab **Docker Swarm** để hiển thị so sánh Throughput (RPS), Latency, CPU và RAM của cụm multi-replica.

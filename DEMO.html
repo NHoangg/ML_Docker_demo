@@ -280,17 +280,31 @@
   </tbody>
 </table>
 <p>---</p>
-<h2>🔧 Chuẩn bị trước khi demo</h2>
-<p>Khởi chạy FastAPI API server và React Dashboard trên máy chủ:</p>
-<pre><code># Trong thư mục dự án, chạy API ở cổng 8000
-uvicorn api.main:app --reload
-<h1>Trong thư mục dashboard, chạy React ở cổng 5173</h1>
+<h2>🔧 Thiết lập môi trường và Khởi chạy (Setup & Run)</h2>
+<p>Thực hiện các bước sau để thiết lập môi trường và khởi chạy ứng dụng từ đầu:</p>
+<h3>Bước 1: Thiết lập và chạy Backend API</h3>
+Mở một cửa sổ Terminal (PowerShell) tại thư mục dự án:
+<pre><code># 1. Kích hoạt môi trường ảo Python
+.\.venv\Scripts\activate
+<h1>2. Cài đặt các thư viện backend cần thiết</h1>
+pip install -r api/requirements.txt
+<h1>3. Khởi chạy FastAPI API server</h1>
+uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
+</code></pre>
+<h3>Bước 2: Thiết lập và chạy Frontend Dashboard</h3>
+Mở một cửa sổ Terminal mới tại thư mục dự án:
+<pre><code># 1. Di chuyển vào thư mục dashboard
+cd dashboard
+<h1>2. Cài đặt các gói node packages</h1>
+npm install
+<h1>3. Khởi chạy React Dashboard dev server</h1>
 npm run dev
 </code></pre>
-<strong>Các URL cần mở sẵn:</strong>
+<strong>Các địa chỉ dịch vụ:</strong>
 <ul>
-<li>🔗 API Docs: http://localhost:8000/docs</li>
-<li>🖥️ Dashboard: http://localhost:5173</li>
+<li>🖥️ <strong>Dashboard Web:</strong> http://localhost:5173</li>
+<li>🔗 <strong>API Swagger Docs:</strong> http://localhost:8000/docs</li>
+<li>🔗 <strong>API Endpoint đánh giá:</strong> http://localhost:8000/analytics/evaluation</li>
 <p></ul><br>---</p>
 <h2>Kịch bản 1: Huấn luyện và đánh giá Baseline</h2>
 <div class="callout"><p><strong>Chứng minh:</strong> Tiền xử lý dữ liệu + So sánh Baseline (LR vs DT vs RF)</p></div>
@@ -396,7 +410,35 @@ Finished Random Forest (Proposed)  | R2: 0.9922 | MAE: 2580.38 | Train Time: 0.3
 <ul>
 <li><strong>Throughput (RPS):</strong> Docker Swarm (2 Replicas) đạt <strong>~135 RPS</strong> vượt trội so với 1 container thông thường (~78 RPS).</li>
 <li><strong>Độ trễ (Latency ms):</strong> Độ trễ trung bình của Swarm chỉ khoảng <strong>7.4 ms</strong> do tải được định tuyến vòng (Round-Robin) tới các bản sao container khác nhau.</li>
-</ul>
+<p></ul><br>---</p>
+<h2>🖥️ Phần 2: Hướng dẫn chạy Demo trực quan trên UI (Interactive UI Guide)</h2>
+<p>Bản cập nhật v3.0 đã tích hợp trực tiếp một trang <strong>"Hướng dẫn Demo" (Demo Shell)</strong> làm màn hình mặc định khi bạn truy cập Dashboard. Bạn có thể dễ dàng kích hoạt và theo dõi các kịch bản chỉ với các cú click chuột.</p>
+<h3>2.1 – Kịch bản 1: Baseline Comparison trên UI</h3>
+1. Trên tab <strong>"Hướng dẫn Demo"</strong>, tìm thẻ <strong>"Kịch bản 1"</strong>.
+2. Click nút <strong>"📊 Xem so sánh Baseline"</strong>.
+3. Hệ thống sẽ tự động chuyển hướng bạn sang tab <strong>Baseline</strong> để hiển thị bảng số liệu chi tiết và 2 biểu đồ cột so sánh trực quan chỉ số  \(R^2\)  và sai số MAE giữa Linear Regression, Decision Tree và Random Forest.
+<h3>2.2 – Kịch bản 2: Dự đoán đơn lẻ & XAI trên UI</h3>
+1. Tìm thẻ <strong>"Kịch bản 2"</strong> trên trang Hướng dẫn.
+2. Click nút <strong>"🎯 Tự động điền & chạy XAI"</strong>.
+3. Hệ thống sẽ tự động chuyển sang tab <strong>"Dự đoán & XAI"</strong>, điền các giá trị mẫu (Tháng 12, Dòng tiền 32K, Đơn hàng 1500, Sản phẩm 3000, Cửa hàng 1, Khu vực Bắc, Nhóm Điện tử) và thực thi dự đoán ngay lập tức.
+4. Bạn sẽ thấy kết quả dự đoán cùng biểu đồ cột ngang thể hiện trực quan mức độ đóng góp cục bộ (XAI) của từng biến số.
+<h3>2.3 – Kịch bản 3: Dự đoán hàng loạt (Batch CSV) trên UI</h3>
+1. Tìm thẻ <strong>"Kịch bản 3"</strong> trên trang Hướng dẫn.
+2. Click nút <strong>"📂 Chuyển sang Batch CSV"</strong>.
+3. Hệ thống chuyển sang tab <strong>Batch CSV</strong>, nơi bạn chỉ cần nhấn chọn file <code>test_batch.csv</code> và hệ thống sẽ xử lý hiển thị bảng kết quả cho bạn.
+<h3>2.4 – Kịch bản 4: Đánh giá sai số & Drift trên UI</h3>
+1. Tìm thẻ <strong>"Kịch bản 4"</strong>.
+2. Click nút <strong>"📈 Xem Đánh giá & Drift"</strong>.
+3. Hệ thống sẽ chuyển hướng đến tab <strong>"Đánh giá & Lỗi"</strong>, hiển thị:
+<ul>
+<li>Biểu đồ đường <strong>Thực tế vs Dự toán</strong> và độ quan trọng đặc trưng toàn cục.</li>
+<li>Thẻ xếp hạng phân tích lỗi (<strong>Error Analysis Cards</strong>) - tự động bôi vàng cảnh báo các thuộc tính có Z-score bất thường ( \(z > 1.5\) ) kèm giải thích chi tiết.</li>
+<li>Biểu đồ theo dõi độ lệch phân phối <strong>Page-Hinkley Concept Drift</strong>.</li>
+<p></ul><br><h3>2.5 – Kịch bản 5: Kiểm soát chất lượng Retrain (Performance Gate) trên UI</h3><br>1. Tìm thẻ <strong>"Kịch bản 5"</strong> trên trang Hướng dẫn.<br>2. Click nút <strong>"⚡ Kích hoạt Retrain Ngay Lập Tức (Manual Trigger)"</strong>.<br>3. Dashboard sẽ gọi trực tiếp API <code>/retrain</code> nền và hiển thị trực tiếp một hộp thoại nhật ký (logs) màu xanh lá ở phía dưới. Nhật ký này cho biết trạng thái huấn luyện là <code>success</code> (Mô hình tốt hơn được cập nhật) hay <code>gated</code> (Bị chặn do chất lượng kém hơn mô hình cũ).</p>
+<h3>2.6 – Kịch bản 6: Đánh giá hiệu năng Swarm Load Balancing trên UI</h3>
+1. Tìm thẻ <strong>"Kịch bản 6"</strong>.
+2. Click nút <strong>"🐳 Xem biểu đồ Docker Swarm"</strong>.
+3. Hệ thống chuyển đến tab <strong>Docker Swarm</strong> để hiển thị so sánh Throughput (RPS), Latency, CPU và RAM của cụm multi-replica.
     </div>
 
     <!-- Script to add Copy Buttons to all <pre> elements -->

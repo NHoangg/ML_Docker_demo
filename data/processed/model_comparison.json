@@ -4,23 +4,23 @@
         "mae": 19485.66,
         "rmse": 64826.71,
         "r2": -0.0963,
-        "train_time_sec": 0.0148,
-        "inf_time_ms_per_sample": 0.0155
+        "train_time_sec": 0.0046,
+        "inf_time_ms_per_sample": 0.0117
     },
     {
         "model": "Decision Tree",
         "mae": 4197.24,
         "rmse": 7107.94,
         "r2": 0.9868,
-        "train_time_sec": 0.0085,
-        "inf_time_ms_per_sample": 0.0129
+        "train_time_sec": 0.0081,
+        "inf_time_ms_per_sample": 0.0107
     },
     {
         "model": "Random Forest (Proposed)",
         "mae": 2580.38,
         "rmse": 5452.27,
         "r2": 0.9922,
-        "train_time_sec": 0.3046,
-        "inf_time_ms_per_sample": 0.2471
+        "train_time_sec": 0.2501,
+        "inf_time_ms_per_sample": 0.1952
     }
 ]

@@ -248,28 +248,81 @@ def get_evaluation_analytics():
             bin_center = (bins[i] + bins[i+1]) / 2
             residuals_dist.append({"bin": round(float(bin_center), 0), "count": int(counts[i])})
             
-        # 4. Error Analysis: Top 5 worst predictions
+        # 4. Error Analysis: Top 5 worst predictions with DATA-DRIVEN explanations
         errors = np.abs(residuals)
         error_df = x_test.copy()
         error_df["actual"] = y_test
         error_df["predicted"] = np.round(preds, 2)
         error_df["abs_error"] = np.round(errors, 2)
         error_df["rel_error_pct"] = np.round((error_df["abs_error"] / error_df["actual"]) * 100, 2)
+        error_df["direction"] = np.where(error_df["predicted"] > error_df["actual"], "over", "under")
         
+        # Compute test-set statistics for comparison
+        num_cols = ["thoi_gian", "dong_tien", "don_hang", "san_pham"]
+        test_stats = {col: {"mean": float(x_test[col].mean()), "std": float(x_test[col].std())} 
+                      for col in num_cols if col in x_test.columns}
+        
+        def _auto_explain_error(row: dict, stats: dict) -> dict:
+            """
+            Analyse individual feature values against dataset statistics to
+            produce a data-driven, row-specific error explanation.
+            Returns a dict with 'explanation' (str) and 'data_flags' (list of anomalies found).
+            """
+            flags = []
+            direction = row.get("direction", "")
+            
+            # --- Numerical feature outlier detection (|z-score| > 1.5) ---
+            feature_labels = {
+                "dong_tien": "Dòng tiền",
+                "don_hang":  "Số đơn hàng",
+                "san_pham":  "Số sản phẩm",
+                "thoi_gian": "Thời gian (tháng)",
+            }
+            for col, label in feature_labels.items():
+                if col not in stats or col not in row:
+                    continue
+                z = (row[col] - stats[col]["mean"]) / (stats[col]["std"] + 1e-9)
+                if z > 1.5:
+                    flags.append(f"{label} ({row[col]:,.0f}) **cao hơn trung bình tập test** ({stats[col]['mean']:,.0f}) → mô hình chưa gặp nhiều mẫu tương tự trong huấn luyện.")
+                elif z < -1.5:
+                    flags.append(f"{label} ({row[col]:,.0f}) **thấp hơn trung bình tập test** ({stats[col]['mean']:,.0f}) → thiếu dữ liệu ở vùng giá trị thấp làm giảm độ chính xác.")
+
+            # --- Categorical feature analysis ---
+            nhom = row.get("nhom_san_pham", "")
+            khu_vuc = row.get("khu_vuc", "")
+            if nhom == "DienTu" and direction == "under":
+                flags.append("Nhóm **Điện Tử** thường có biến động doanh thu theo mùa (khuyến mãi, ra sản phẩm mới) — dữ liệu huấn luyện chưa đủ đại diện.")
+            if nhom == "ThucPham" and direction == "over":
+                flags.append("Nhóm **Thực Phẩm** có giá trị đơn hàng nhỏ, biên lợi nhuận thấp — dự báo cao hơn thực tế do mô hình ảnh hưởng từ nhóm giá trị cao hơn.")
+            if khu_vuc == "Nam" and direction == "under":
+                flags.append("Khu vực **Nam** có biến động doanh thu cao vào giai đoạn lễ tết / cuối năm — sai lệch tăng mạnh khi dữ liệu nằm ở thời điểm đặc biệt.")
+
+            # --- Direction-specific root cause ---
+            if direction == "over":
+                root = "Mô hình **dự báo cao hơn thực tế** (over-prediction)"
+            else:
+                root = "Mô hình **dự báo thấp hơn thực tế** (under-prediction)"
+
+            if not flags:
+                flags.append("Giá trị các đặc trưng nằm trong vùng bình thường — sai lệch có thể do tương tác phức tạp giữa nhiều biến mà Random Forest chưa nắm bắt được hoàn toàn (hiệu ứng biên).")
+
+            explanation = f"{root}. Phân tích đặc điểm dữ liệu: {' | '.join(flags)}"
+            return {"explanation": explanation, "data_flags": flags}
+
         top_5 = error_df.sort_values(by="abs_error", ascending=False).head(5)
         
-        explanations = [
-            "Doanh thu thực tế cao bất thường so với dòng tiền và số lượng sản phẩm.",
-            "Mô hình dự báo thấp do tỷ lệ đơn hàng/sản phẩm cao vượt mức trung bình lịch sử.",
-            "Lệch do ảnh hưởng mùa vụ của danh mục Điện tử chưa được phản ánh hết trong dòng tiền.",
-            "Đơn hàng lớn nhưng giá trị sản phẩm trung bình thấp, mô hình chưa tối ưu được giỏ hàng.",
-            "Khu vực Nam có biến động doanh thu đột biến vào thời điểm cuối năm."
-        ]
-        
         error_list = []
-        for idx, (_, row) in enumerate(top_5.iterrows()):
+        for _, row in top_5.iterrows():
             row_dict = row.to_dict()
-            row_dict["explanation"] = explanations[idx % len(explanations)]
+            analysis = _auto_explain_error(row_dict, test_stats)
+            row_dict["explanation"] = analysis["explanation"]
+            row_dict["data_flags"] = analysis["data_flags"]
+            # Add comparison stats for UI rendering
+            row_dict["test_stats"] = {
+                col: {"mean": round(test_stats[col]["mean"], 1), "std": round(test_stats[col]["std"], 1)}
+                for col in test_stats
+                if col in row_dict
+            }
             error_list.append(row_dict)
             
         # 5. Concept Drift Detection (Page-Hinkley)

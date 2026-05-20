@@ -60,21 +60,193 @@ function TabBar({ tabs, active, onSelect }) {
   );
 }
 
+// ─── Interactive Demo Tab ──────────────────────────────────────────────────
+function DemoTab({ onPrefill, onNavigate }) {
+  const [retrainLog, setRetrainLog] = useState('');
+  const [retrainLoading, setRetrainLoading] = useState(false);
+
+  async function handleTriggerRetrain() {
+    setRetrainLoading(true);
+    setRetrainLog('⏳ Đang gửi yêu cầu retrain tới API server...');
+    try {
+      const res = await fetch('http://127.0.0.1:8000/retrain', { method: 'POST' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const status = data.result?.status;
+      const metrics = data.result?.metrics;
+      const prevMetrics = data.result?.previous_metrics || data.result?.candidate_metrics;
+      
+      let msg = `✅ Trạng thái: ${status === 'success' ? 'THÀNH CÔNG (Mô hình đã cập nhật)' : 'GATED (Bị chặn do suy giảm hiệu năng)'}\n`;
+      msg += `⏱️ Thời gian: ${new Date(data.result?.time).toLocaleString('vi-VN')}\n`;
+      if (metrics) {
+        msg += `📈 Chỉ số mới: R²=${metrics.r2.toFixed(4)}, MAE=${metrics.mae.toFixed(1)}, RMSE=${metrics.rmse.toFixed(1)}\n`;
+      }
+      if (status === 'gated' && data.result?.candidate_metrics) {
+        msg += `⚠ Mô hình ứng cử bị từ chối do chất lượng kém (R²=${data.result.candidate_metrics.r2.toFixed(4)} so với baseline ${data.result.metrics.r2.toFixed(4)})\n`;
+      } else if (prevMetrics) {
+        msg += `📉 Chỉ số trước đó: R²=${prevMetrics.r2.toFixed(4)}, MAE=${prevMetrics.mae.toFixed(1)}\n`;
+      }
+      setRetrainLog(msg);
+    } catch (err) {
+      setRetrainLog(`❌ Lỗi kết nối API: ${err.message}. Hãy chắc chắn rằng API Server đang chạy ở cổng 8000.`);
+    } finally {
+      setRetrainLoading(false);
+    }
+  }
+
+  const demoScenarios = [
+    {
+      id: 1,
+      title: 'Kịch bản 1: Huấn luyện & Đánh giá Baseline',
+      desc: 'Phân tích dữ liệu lịch sử bán lẻ đa chiều và so sánh hiệu năng các thuật toán học máy cổ điển (Linear Regression, Decision Tree) với Random Forest đề xuất.',
+      badge: 'Học thuật',
+      actionText: '📊 Xem so sánh Baseline',
+      action: () => onNavigate('baseline'),
+    },
+    {
+      id: 2,
+      title: 'Kịch bản 2: Dự đoán đơn lẻ & XAI',
+      desc: 'Nhập thông tin bán lẻ đơn lẻ để dự đoán doanh thu thực tế kèm biểu đồ đóng góp đặc trưng giải thích thuật toán (Explainable AI - XAI) theo phương pháp Perturbation.',
+      badge: 'Thực tế',
+      actionText: '🎯 Tự động điền & chạy XAI',
+      action: () => {
+        onPrefill({
+          thoi_gian: 12,
+          dong_tien: 32000,
+          don_hang: 1500,
+          san_pham: 3000,
+          khu_vuc: 'Bac',
+          cua_hang: 'CH1',
+          nhom_san_pham: 'DienTu',
+        });
+      },
+    },
+    {
+      id: 3,
+      title: 'Kịch bản 3: Dự đoán hàng loạt (Batch CSV)',
+      desc: 'Tải lên một tệp CSV chứa hàng loạt dòng dữ liệu bán lẻ để suy luận đồng thời, phù hợp cho việc phân tích báo cáo doanh số định kỳ.',
+      badge: 'Thực tiễn',
+      actionText: '📂 Chuyển sang Batch CSV',
+      action: () => onNavigate('batch'),
+    },
+    {
+      id: 4,
+      title: 'Kịch bản 4: Đánh giá mô hình & Sai số & Concept Drift',
+      desc: 'Trực quan hóa sai số (Residuals), phân tích lỗi (Error Analysis) động dựa trên thống kê z-score và giám sát trôi lệch dữ liệu (Concept Drift) bằng giải thuật Page-Hinkley.',
+      badge: 'Đột phá',
+      actionText: '📈 Xem Đánh giá & Drift',
+      action: () => onNavigate('evaluation'),
+    },
+    {
+      id: 5,
+      title: 'Kịch bản 5: Huấn luyện tự thích ứng có Gating',
+      desc: 'Kích hoạt quá trình huấn luyện lại mô hình mới. Hệ thống sử dụng chốt chặn Performance Gate tự động so sánh chất lượng mô hình cũ và mới trước khi hot-reload.',
+      badge: 'Mới',
+      isInteractive: true,
+    },
+    {
+      id: 6,
+      title: 'Kịch bản 6: Triển khai Docker Swarm & Cân bằng tải',
+      desc: 'Triển khai cụm Docker Swarm Multi-replica (2 replicas) có Ingress routing mesh giúp cân bằng tải tự động, tối ưu hóa Throughput (RPS) và giảm thiểu Latency dưới tải nặng.',
+      badge: 'Hệ thống',
+      actionText: '🐳 Xem biểu đồ Docker Swarm',
+      action: () => onNavigate('benchmark'),
+    },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{ background: 'linear-gradient(135deg, #e0e7ff 0%, #e0f2fe 100%)', border: '1px solid #c7d2fe', borderRadius: '0.75rem', padding: '1.5rem', color: '#1e1b4b' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>🎬 Hướng dẫn Chạy các Kịch bản Demo Hệ thống</h2>
+        <p style={{ fontSize: '0.9rem', color: '#312e81', marginTop: '0.5rem', lineHeight: 1.5 }}>
+          Trang hướng dẫn này tích hợp sẵn các nút bấm giúp tự động hóa việc cấu hình, chạy kịch bản thử nghiệm hoặc chuyển hướng nhanh đến các trang phân tích chuyên sâu tương ứng. Hãy chọn một kịch bản dưới đây để bắt đầu.
+        </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.25rem' }}>
+        {demoScenarios.map(s => (
+          <div key={s.id} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', transition: 'all 0.2s' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: '#111827' }}>{s.title}</span>
+                <span style={{ fontSize: '0.75rem', background: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontWeight: 600 }}>{s.badge}</span>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: '#4b5563', lineHeight: 1.6, marginBottom: '1.25rem' }}>{s.desc}</p>
+            </div>
+            
+            {s.isInteractive ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <button 
+                  className="predict-button" 
+                  disabled={retrainLoading} 
+                  onClick={handleTriggerRetrain}
+                  style={{ width: '100%', margin: 0, padding: '0.6rem 1rem', fontSize: '0.875rem' }}
+                >
+                  <span className={retrainLoading ? 'button-loader spin' : 'button-spark'} aria-hidden="true" />
+                  <span>{retrainLoading ? 'Đang chạy Retrain...' : '⚡ Kích hoạt Retrain Ngay Lập Tức (Manual Trigger)'}</span>
+                </button>
+                {retrainLog && (
+                  <pre style={{ margin: 0, padding: '0.75rem', background: '#1f2937', color: '#10b981', fontSize: '0.8rem', borderRadius: '0.5rem', overflowX: 'auto', whiteSpace: 'pre-wrap', border: '1px solid #374151' }}>
+                    {retrainLog}
+                  </pre>
+                )}
+              </div>
+            ) : (
+              <button 
+                onClick={s.action}
+                style={{ 
+                  width: '100%', 
+                  background: '#f3f4f6', 
+                  border: '1px solid #d1d5db', 
+                  color: '#374151', 
+                  padding: '0.6rem 1rem', 
+                  borderRadius: '0.5rem', 
+                  fontSize: '0.875rem', 
+                  fontWeight: 600, 
+                  cursor: 'pointer', 
+                  transition: 'background 0.2s',
+                  textAlign: 'center'
+                }}
+                onMouseOver={e => e.currentTarget.style.background = '#e5e7eb'}
+                onMouseOut={e => e.currentTarget.style.background = '#f3f4f6'}
+              >
+                {s.actionText}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Single Predict Tab (with XAI) ─────────────────────────────────────────
-function SingleTab() {
+function SingleTab({ prefilledForm, clearPrefill }) {
   const [form, setForm] = useState(initialForm);
   const [prediction, setPrediction] = useState(null);
   const [contributions, setContributions] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (prefilledForm) {
+      setForm(prefilledForm);
+      clearPrefill();
+      const timer = setTimeout(() => {
+        const fakeEvent = { preventDefault: () => {} };
+        handleSubmit(fakeEvent, prefilledForm);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [prefilledForm]);
+
   const update = (k, v) => setForm(f => ({ ...f, [k]: typeof initialForm[k] === 'number' ? Number(v) : v }));
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function handleSubmit(e, currentForm = form) {
+    if (e) e.preventDefault();
     setLoading(true); setError('');
     try {
-      const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(currentForm) });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || `HTTP ${res.status}`); }
       const data = await res.json();
       setPrediction(data.predicted_revenue);
@@ -512,32 +684,91 @@ function EvaluationTab() {
           </ResponsiveContainer>
         </div>
 
-        {/* Error Analysis Table */}
-        <div className="chart-panel">
-          <div className="panel-title"><span className="icon-dot" /> <span>Phân tích sai số (Error Analysis - Top 5 lỗi lớn nhất)</span></div>
-          <div style={{ overflowX: 'auto', marginTop: '0.5rem' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-              <thead>
-                <tr style={{ background: '#f3f4f6' }}>
-                  <th style={{ padding: '0.4rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Thực tế</th>
-                  <th style={{ padding: '0.4rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Dự đoán</th>
-                  <th style={{ padding: '0.4rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Lệch (VNĐ)</th>
-                  <th style={{ padding: '0.4rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>% Lệch</th>
-                  <th style={{ padding: '0.4rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Nguyên nhân lỗi dự kiến</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.error_analysis.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '0.4rem', fontWeight: 600 }}>{formatMoney(item.actual)}</td>
-                    <td style={{ padding: '0.4rem' }}>{formatMoney(item.predicted)}</td>
-                    <td style={{ padding: '0.4rem', color: '#ef4444' }}>{formatMoney(item.abs_error)}</td>
-                    <td style={{ padding: '0.4rem', color: '#ef4444', fontWeight: 600 }}>{item.rel_error_pct}%</td>
-                    <td style={{ padding: '0.4rem', fontStyle: 'italic', color: '#4b5563' }}>{item.explanation}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Error Analysis Cards — Data-Driven */}
+        <div className="chart-panel" style={{ gridColumn: '1/-1' }}>
+          <div className="panel-title">
+            <span className="icon-dot" style={{ background: '#ef4444' }} />
+            <span>Phân tích sai số chuyên sâu — Top 5 dự đoán lệch lớn nhất (Data-driven Error Analysis)</span>
+          </div>
+          <p style={{ fontSize: '0.78rem', color: '#6b7280', marginBottom: '1rem' }}>
+            Mỗi trường hợp được phân tích tự động dựa trên đặc điểm dữ liệu thực tế của dòng đó (z-score so với trung bình tập test, danh mục sản phẩm, khu vực địa lý) — <strong>không phải giải thích cố định</strong>.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {data.error_analysis.map((item, idx) => {
+              const isOver = item.direction === 'over';
+              const dirColor = isOver ? '#f59e0b' : '#6366f1';
+              const dirLabel = isOver ? '▲ Over-prediction' : '▼ Under-prediction';
+              return (
+                <div key={idx} style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden' }}>
+                  {/* Header Row */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto auto', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#374151' }}>#{idx + 1}</span>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', fontSize: '0.78rem' }}>
+                      <span style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 4 }}>
+                        📍 {item.khu_vuc}
+                      </span>
+                      <span style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 4 }}>
+                        🏪 {item.cua_hang}
+                      </span>
+                      <span style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 4 }}>
+                        📦 {item.nhom_san_pham}
+                      </span>
+                      <span style={{ background: '#fef3c7', padding: '2px 8px', borderRadius: 4 }}>
+                        📅 Tháng {item.thoi_gian}
+                      </span>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: '0.8rem' }}>
+                      <div style={{ color: '#6b7280' }}>Thực tế</div>
+                      <div style={{ fontWeight: 700, color: '#10b981' }}>{formatMoney(item.actual)}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: '0.8rem' }}>
+                      <div style={{ color: '#6b7280' }}>Dự đoán</div>
+                      <div style={{ fontWeight: 700, color: '#6366f1' }}>{formatMoney(item.predicted)}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: '0.8rem' }}>
+                      <div style={{ background: dirColor, color: '#fff', padding: '2px 8px', borderRadius: 4, fontWeight: 700, fontSize: '0.72rem', marginBottom: 2 }}>
+                        {dirLabel}
+                      </div>
+                      <div style={{ color: '#ef4444', fontWeight: 700 }}>Δ {formatMoney(item.abs_error)} ({item.rel_error_pct}%)</div>
+                    </div>
+                  </div>
+
+                  {/* Feature Values + Test Stats Comparison */}
+                  {item.test_stats && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.5rem', padding: '0.75rem 1rem', background: '#fff', borderBottom: '1px solid #f3f4f6' }}>
+                      {Object.entries(item.test_stats).map(([col, stats]) => {
+                        const val = item[col];
+                        const z = (val - stats.mean) / (stats.std + 0.001);
+                        const anomaly = Math.abs(z) > 1.5;
+                        const label = { thoi_gian: 'Thời gian', dong_tien: 'Dòng tiền', don_hang: 'Đơn hàng', san_pham: 'Sản phẩm' }[col] || col;
+                        return (
+                          <div key={col} style={{ fontSize: '0.75rem', padding: '0.4rem 0.6rem', borderRadius: '0.5rem', background: anomaly ? '#fef9c3' : '#f9fafb', border: `1px solid ${anomaly ? '#fbbf24' : '#e5e7eb'}` }}>
+                            <div style={{ color: '#6b7280', marginBottom: 2 }}>{label}</div>
+                            <div style={{ fontWeight: 700, color: anomaly ? '#92400e' : '#1f2937' }}>
+                              {typeof val === 'number' ? val.toLocaleString('vi-VN') : val}
+                              {anomaly && <span style={{ marginLeft: 4, fontSize: '0.65rem', color: '#b45309' }}>⚠ z={z.toFixed(1)}</span>}
+                            </div>
+                            <div style={{ color: '#9ca3af', fontSize: '0.68rem' }}>TB: {stats.mean.toLocaleString('vi-VN')} ± {stats.std.toLocaleString('vi-VN')}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Data-driven Flags */}
+                  <div style={{ padding: '0.75rem 1rem', background: '#fff' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#374151', marginBottom: '0.4rem' }}>
+                      🔍 Phân tích nguyên nhân lỗi từ dữ liệu:
+                    </div>
+                    <ul style={{ margin: 0, padding: '0 0 0 1.2rem', fontSize: '0.78rem', color: '#4b5563', lineHeight: 1.7 }}>
+                      {(item.data_flags || [item.explanation]).map((flag, fi) => (
+                        <li key={fi} dangerouslySetInnerHTML={{ __html: flag.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -787,6 +1018,7 @@ function BenchmarkTab() {
 
 // ─── App Shell ─────────────────────────────────────────────────────────────
 const TABS = [
+  { id: 'demo', label: 'Hướng dẫn Demo', icon: '🎬' },
   { id: 'single', label: 'Dự đoán & XAI', icon: '🎯' },
   { id: 'batch', label: 'Batch CSV', icon: '📂' },
   { id: 'realtime', label: 'Realtime Live', icon: '📡' },
@@ -796,7 +1028,15 @@ const TABS = [
 ];
 
 function App() {
-  const [activeTab, setActiveTab] = useState('single');
+  const [activeTab, setActiveTab] = useState('demo');
+  const [prefilledForm, setPrefilledForm] = useState(null);
+
+  const handlePrefill = (formValues) => {
+    setPrefilledForm(formValues);
+    setActiveTab('single');
+  };
+
+  const clearPrefill = () => setPrefilledForm(null);
 
   return (
     <main className="app-shell">
@@ -815,7 +1055,8 @@ function App() {
         <TabBar tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
         <div style={{ marginTop: '1.5rem' }}>
-          {activeTab === 'single' && <SingleTab />}
+          {activeTab === 'demo' && <DemoTab onPrefill={handlePrefill} onNavigate={setActiveTab} />}
+          {activeTab === 'single' && <SingleTab prefilledForm={prefilledForm} clearPrefill={clearPrefill} />}
           {activeTab === 'batch' && <BatchTab />}
           {activeTab === 'realtime' && <RealtimeTab />}
           {activeTab === 'evaluation' && <EvaluationTab />}
