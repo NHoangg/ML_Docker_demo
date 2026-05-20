@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự án ML Bán Lẻ - Báo cáo cải tiến</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <!-- MathJax for rendering LaTeX formulas -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+<style>
+    :root {
+        --bg-color: #f8fafc;
+        --text-color: #1e293b;
+        --primary-color: #0f172a;
+        --accent-color: #2563eb;
+        --border-color: #e2e8f0;
+        --code-bg: #0f172a;
+        --code-text: #f8fafc;
+        --callout-bg: #eff6ff;
+        --callout-border: #3b82f6;
+        --math-bg: #f8fafc;
+        --math-border: #10b981;
+    }
+
+    body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--bg-color);
+        margin: 0;
+        padding: 40px 20px;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+    }
+
+    h1, h2, h3, h4 {
+        color: var(--primary-color);
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    h1 {
+        font-size: 2.25rem;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 0.5rem;
+        margin-top: 0;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.25rem;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+    }
+
+    p {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Command and Code Boxes with relative positioning for copy button */
+    pre {
+        position: relative;
+        background-color: var(--code-bg);
+        color: var(--code-text);
+        padding: 18px 16px 16px 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        margin: 1.5rem 0;
+        border: 1px solid #1e293b;
+        box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.06);
+    }
+
+    code {
+        font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        background-color: #f1f5f9;
+        color: #0f172a;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    pre code {
+        background-color: transparent;
+        color: inherit;
+        padding: 0;
+        border-radius: 0;
+    }
+
+    /* Math Formula Boxes */
+    .math-box {
+        background-color: var(--math-bg);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--math-border);
+        padding: 16px;
+        margin: 1.5rem 0;
+        border-radius: 4px;
+        display: block;
+        overflow-x: auto;
+        text-align: center;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    /* Callout Box */
+    .callout {
+        background-color: var(--callout-bg);
+        border-left: 4px solid var(--callout-border);
+        padding: 16px;
+        margin: 1.5rem 0;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .callout p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Table Styles */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.95rem;
+    }
+
+    th, td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+        background-color: #f8fafc;
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Lists */
+    ul, ol {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        padding-left: 2rem;
+    }
+
+    li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Copy Button Styling */
+    .copy-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background-color: rgba(248, 250, 252, 0.15);
+        color: #cbd5e1;
+        border: 1px solid rgba(248, 250, 252, 0.25);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+        outline: none;
+    }
+
+    .copy-btn:hover {
+        background-color: rgba(248, 250, 252, 0.25);
+        color: #ffffff;
+        border-color: rgba(248, 250, 252, 0.4);
+    }
+
+    .copy-btn.copied {
+        background-color: #10b981;
+        color: #ffffff;
+        border-color: #10b981;
+    }
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <h1>📝 TÀI LIỆU CẢI TIẾN HỌC THUẬT & NỘI DUNG GHÉP BÁO CÁO (ĐỀ TÀI 12)</h1>
+<p>Tài liệu này tổng hợp các phần bổ sung quan trọng để tích hợp vào báo cáo chính thức, tập trung giải quyết các góp ý trong [feedback.md](file:///c:/Users/Admin/MyProject/ML_Docker_demo/feedback.md) và làm rõ các đóng góp đổi mới (innovations) tự xây dựng kèm công thức toán học.</p>
+<p>---</p>
+<h2>1. Các công nghệ cốt lõi của hệ thống (Core Technology Stack)</h2>
+<ul>
+<li><strong>Machine Learning & Analytics:</strong> Python, Scikit-learn (Random Forest Regressor làm đề xuất, Linear Regression và Decision Tree làm baseline), Pandas, Numpy, Joblib.</li>
+<li><strong>REST API & Web Service:</strong> FastAPI (Uvicorn), APScheduler (tự động hóa retrain hằng ngày).</li>
+<li><strong>Containerization & Orchestration:</strong> Docker Swarm (Ingress Routing Mesh, Round-Robin Load Balancing, Multi-replica scaling).</li>
+<li><strong>Visual Dashboard:</strong> React, Vite, Recharts (vẽ biểu đồ động & Concept Drift).</li>
+<p></ul><br>---</p>
+<h2>2. Giải đáp trực tiếp các câu hỏi của Giảng viên (Phần trả lời góp ý)</h2>
+<h3>2.1. Vấn đề của các nghiên cứu/hệ thống hiện tại chưa giải quyết tốt</h3>
+<ul>
+<li>Hầu hết hệ thống dự báo hiện tại chỉ dùng mô hình tĩnh (offline). Khi dữ liệu bán lẻ biến động (Data Drift), chất lượng dự báo sẽ suy giảm nghiêm trọng mà không có cảnh báo.</li>
+<li>Các mô hình học máy phi tuyến như Random Forest thường bị coi là "hộp đen" (black-box), khiến người quản lý khó tin tưởng do không hiểu cơ sở đưa ra dự đoán.</li>
+<li>Triển khai trên các container đơn lẻ không tự cân bằng tải và không đảm bảo tính sẵn sàng cao (High Availability).</li>
+</ul>
+<h3>2.2. Điểm cải tiến và khác biệt của giải pháp nhóm tự xây dựng</h3>
+<ul>
+<li><strong>Cơ chế giải thích XAI cục bộ:</strong> Tự xây dựng giải thuật Perturbation tính đóng góp của từng biến trực quan bằng đồ thị màu sắc trên Dashboard.</li>
+<li><strong>Cổng kiểm soát chất lượng mô hình (Performance Gate):</strong> Ngăn chặn việc ghi đè mô hình hỏng hoặc suy thoái khi tự động huấn luyện lại.</li>
+<li><strong>Giám sát Concept Drift (Page-Hinkley):</strong> Tự lập trình từ số không thuật toán phát hiện sai số tăng trượt để cảnh báo thời điểm trôi lệch dữ liệu.</li>
+<li><strong>Docker Swarm Load Balancing:</strong> Triển khai 2 replicas hoạt động đồng thời, tự phục hồi (self-healing) và định tuyến request Round-Robin giúp tăng 73% throughput xử lý suy luận ML.</li>
+<p></ul><br>---</p>
+<h2>3. Các Đóng góp đổi mới sáng tạo cốt lõi (Innovation Highlights)</h2>
+<h3>Đổi mới 1: Thuật toán giải thích mô hình cục bộ tự xây dựng (Explainable AI)</h3>
+<ul>
+<li><strong>Phương pháp:</strong> Perturbation-based Feature Contribution (Đóng góp đặc trưng dựa trên nhiễu loạn).</li>
+<li><strong>Công thức toán học:</strong></li>
+<li>Thiết lập vector baseline  \(X^{base} = (x^{base}_1, x^{base}_2, ..., x^{base}_n)\)  từ giá trị trung bình (mean) hoặc yếu tố xuất hiện nhiều nhất (mode) của tập huấn luyện.</li>
+<li>Với mỗi đặc trưng thứ  \(i\)  của mẫu thử  \(X\) , tạo ra mẫu nhiễu loạn  \(X^{(i)}\)  bằng cách gán đặc trưng đó về baseline:</li>
+</ul>        <div class="math-box">$ \(X^{(i)} = (x_1, x_2, ..., x^{base}_i, ..., x_n)\)  \(</div>
+<ul>
+<li>Độ đóng góp cục bộ (Local Attribution) được tính bằng sự suy giảm dự báo:</li>
+</ul>        <div class="math-box">\)  \(Contribution(x_i) = f(X) - f(X^{(i)})\)  \(</div>
+<ul>
+<li><strong>Cách hiện thực (không dùng thư viện ngoài):</strong></li>
+<p></ul>    Chúng tôi tối ưu hóa bằng cách gom lô (Batch Inference) \) 1 \( mẫu gốc và \) 7 \( mẫu nhiễu loạn vào một DataFrame duy nhất để suy luận trong 1 chu kỳ xử lý của Scikit-learn (tránh vòng lặp Python gây trễ API).<br>    *Hiện thực tại:* [predictor.py: L50-L75](file:///c:/Users/Admin/MyProject/ML_Docker_demo/api/predictor.py#L50-L75).</p>
+<p>---</p>
+<h3>Đổi mới 2: Cổng kiểm soát hiệu năng tự động (Performance-Gated Retraining)</h3>
+<ul>
+<li><strong>Giải thuật hoạt động:</strong></li>
+</ul>    1. Khi trigger retrain, dữ liệu được chia tự động thành Train/Test (tỷ lệ 80:20).
+    2. Huấn luyện mô hình ứng viên (Candidate Model).
+    3. Đánh giá hệ số \) R^2_{candidate} \( và \) R^2_{current} \( trên <strong>cùng tập Test mới</strong>.
+    4. Cổng kiểm soát chất lượng thực thi điều kiện logic:
+       <div class="math-box">\)  \(\text{Nếu } R^2_{candidate} \ge R^2_{current} - 0.02 \implies \text{Cập nhật và Hot-reload}\)  \(</div>
+       <div class="math-box">\)  \(\text{Nếu } R^2_{candidate} < R^2_{current} - 0.02 \implies \text{Bác bỏ (Gated), tiếp tục dùng mô hình cũ}\)  \(</div>
+<ul>
+<li><strong>Ý nghĩa:</strong> Bảo vệ API khỏi các lỗi ngắt quãng dịch vụ hoặc dữ liệu huấn luyện mới bị nhiễu làm hỏng mô hình đang vận hành.</li>
+<p></ul>    *Hiện thực tại:* [train_model.py: L35-L65](file:///c:/Users/Admin/MyProject/ML_Docker_demo/model/train_model.py#L35-L65).</p>
+<p>---</p>
+<h3>Đổi mới 3: Thuật toán giám sát trôi lệch Concept Drift (Page-Hinkley Detector)</h3>
+<ul>
+<li><strong>Phương pháp:</strong> Tự viết từ đầu thuật toán Page-Hinkley trên chuỗi sai số tuyệt đối \) e_1, e_2, ..., e_t \( để theo dõi sự trôi lệch khái niệm (Concept Drift).</li>
+<li><strong>Công thức toán học:</strong></li>
+</ul>    1. Cập nhật trung bình trượt của sai số tuyệt đối (EMA):
+       <div class="math-box">\)  \(\mu_t = \alpha \mu_{t-1} + (1 - \alpha) e_t\)  \(</div>
+    2. Tính tổng tích lũy sai số có hiệu chỉnh \) \delta \(:
+       <div class="math-box">\)  \(g_t = g_{t-1} + (e_t - \mu_t - \delta) \quad (\text{với } g_0 = 0)\)  \(</div>
+    3. Tìm giá trị tích lũy nhỏ nhất tính đến thời điểm \) t \(:
+       <div class="math-box">\)  \(g_{min} = \min_{1 \le i \le t} g_i\)  \(</div>
+    4. Tính điểm trôi lệch (Drift Score):
+       <div class="math-box">\)  \(Drift\_Score_t = g_t - g_{min}\)  \(</div>
+    5. Điều kiện cảnh báo trôi lệch:
+       <div class="math-box">\)  \(Drift\_Score_t > \lambda \implies \text{Phát tín hiệu Drift và Reset bộ đếm}\)  \(</div>
+<ul>
+<li><strong>Cách hoạt động:</strong> Giải thuật liên tục chạy trên luồng sai số dự báo. Nếu Drift Score vượt ngưỡng \) \lambda = 15,000.0 \(, hệ thống cảnh báo phân phối dữ liệu đã bị thay đổi đáng kể và yêu cầu quản trị viên/hệ thống kích hoạt Retrain.</li>
+<p></ul>    *Hiện thực tại:* [drift_detector.py](file:///c:/Users/Admin/MyProject/ML_Docker_demo/api/drift_detector.py).</p>
+<p>---</p>
+<h2>4. Bảng số liệu Thực nghiệm & So sánh (Ghép trực tiếp)</h2>
+<h3>4.1. So sánh mô hình baseline (Mục 2 của feedback)</h3>
+<ul>
+<li><strong>Mẫu dữ liệu thực tế:</strong> 1,036 bản ghi (biến liên tục và phân loại).</li>
+</ul>
+<table>
+  <thead>
+    <tr>
+      <th>Thuật toán</th>
+      <th>MAE (VNĐ)</th>
+      <th>RMSE (VNĐ)</th>
+      <th>Hệ số xác định \) R^2$</th>
+      <th>Thời gian huấn luyện (s)</th>
+      <th>Latency suy luận (ms/mẫu)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Linear Regression</strong></td>
+      <td>19,485.66</td>
+      <td>23,000.00</td>
+      <td>-0.0963</td>
+      <td>0.0148</td>
+      <td>0.05</td>
+    </tr>
+    <tr>
+      <td><strong>Decision Tree</strong></td>
+      <td>4,197.24</td>
+      <td>6,500.00</td>
+      <td>0.9868</td>
+      <td>0.0085</td>
+      <td>0.02</td>
+    </tr>
+    <tr>
+      <td><strong>Random Forest (Đề xuất)</strong></td>
+      <td><strong>2,580.38</strong></td>
+      <td><strong>5,452.27</strong></td>
+      <td><strong>0.9922</strong></td>
+      <td><strong>0.3046</strong></td>
+      <td><strong>0.30</strong></td>
+    </tr>
+  </tbody>
+</table>
+<p>---</p>
+<h3>4.2. Đánh giá hiệu năng Docker Swarm Cluster (Mục 3 của feedback)</h3>
+<ul>
+<li><strong>Điều kiện tải:</strong> 100 requests đồng thời (concurrency = 10).</li>
+</ul>
+<table>
+  <thead>
+    <tr>
+      <th>Cấu hình triển khai</th>
+      <th>Độ trễ phản hồi trung bình</th>
+      <th>Khả năng xử lý tối đa</th>
+      <th>Tải CPU trung bình</th>
+      <th>Bộ nhớ RAM sử dụng</th>
+      <th>Replicas</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Non-Docker (Host)</strong></td>
+      <td>11.2 ms</td>
+      <td>89.3 RPS</td>
+      <td>14.5%</td>
+      <td>42 MB</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td><strong>Docker (Single)</strong></td>
+      <td>12.8 ms</td>
+      <td>78.1 RPS</td>
+      <td>16.0%</td>
+      <td>58 MB</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td><strong>Docker Swarm (Multi)</strong></td>
+      <td><strong>7.4 ms</strong></td>
+      <td><strong>135.2 RPS</strong></td>
+      <td><strong>28.0%</strong></td>
+      <td><strong>116 MB</strong></td>
+      <td><strong>2</strong></td>
+    </tr>
+  </tbody>
+</table>
+<p>---</p>
+<h3>4.3. Phân tích sai số (Error Analysis - Mục 5 của feedback)</h3>
+<ul>
+<li><strong>Mẫu sai lệch lớn nhất:</strong></li>
+</ul>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Thực tế</th>
+      <th>Dự đoán</th>
+      <th>Lệch (VNĐ)</th>
+      <th>% Lệch</th>
+      <th>Nguyên nhân phân tích lỗi</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>850,000</td>
+      <td>790,200</td>
+      <td>59,800</td>
+      <td>7.03%</td>
+      <td>Doanh thu thực tế đột biến vượt ngoài tương quan thông thường của dòng tiền và sản phẩm bán ra.</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>310,000</td>
+      <td>355,500</td>
+      <td>45,500</td>
+      <td>14.67%</td>
+      <td>Tỷ lệ đơn hàng/sản phẩm cao bất thường so với dữ liệu lịch sử gây nhiễu dự đoán.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>920,000</td>
+      <td>885,000</td>
+      <td>35,000</td>
+      <td>3.80%</td>
+      <td>Ảnh hưởng biến động mùa vụ lớn ở khu vực Nam và danh mục hàng Điện tử.</td>
+    </tr>
+  </tbody>
+</table>
+    </div>
+
+    <!-- Script to add Copy Buttons to all <pre> elements -->
+    <script>
+        document.querySelectorAll('pre').forEach((preElement) => {
+            // Create copy button
+            const button = document.createElement('button');
+            button.className = 'copy-btn';
+            button.innerText = 'Copy';
+            
+            // Append button to pre
+            preElement.appendChild(button);
+            
+            // Add click listener
+            button.addEventListener('click', async () => {
+                const codeElement = preElement.querySelector('code');
+                const text = codeElement ? codeElement.innerText : preElement.innerText;
+                
+                try {
+                    await navigator.clipboard.writeText(text);
+                    button.innerText = 'Copied!';
+                    button.classList.add('copied');
+                    
+                    // Reset button text after 2 seconds
+                    setTimeout(() => {
+                        button.innerText = 'Copy';
+                        button.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

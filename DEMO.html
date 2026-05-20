@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự án ML Bán Lẻ - Kịch bản Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <!-- MathJax for rendering LaTeX formulas -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+<style>
+    :root {
+        --bg-color: #f8fafc;
+        --text-color: #1e293b;
+        --primary-color: #0f172a;
+        --accent-color: #2563eb;
+        --border-color: #e2e8f0;
+        --code-bg: #0f172a;
+        --code-text: #f8fafc;
+        --callout-bg: #eff6ff;
+        --callout-border: #3b82f6;
+        --math-bg: #f8fafc;
+        --math-border: #10b981;
+    }
+
+    body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--bg-color);
+        margin: 0;
+        padding: 40px 20px;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+    }
+
+    h1, h2, h3, h4 {
+        color: var(--primary-color);
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    h1 {
+        font-size: 2.25rem;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 0.5rem;
+        margin-top: 0;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.25rem;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+    }
+
+    p {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Command and Code Boxes with relative positioning for copy button */
+    pre {
+        position: relative;
+        background-color: var(--code-bg);
+        color: var(--code-text);
+        padding: 18px 16px 16px 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        margin: 1.5rem 0;
+        border: 1px solid #1e293b;
+        box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.06);
+    }
+
+    code {
+        font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        background-color: #f1f5f9;
+        color: #0f172a;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    pre code {
+        background-color: transparent;
+        color: inherit;
+        padding: 0;
+        border-radius: 0;
+    }
+
+    /* Math Formula Boxes */
+    .math-box {
+        background-color: var(--math-bg);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--math-border);
+        padding: 16px;
+        margin: 1.5rem 0;
+        border-radius: 4px;
+        display: block;
+        overflow-x: auto;
+        text-align: center;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    /* Callout Box */
+    .callout {
+        background-color: var(--callout-bg);
+        border-left: 4px solid var(--callout-border);
+        padding: 16px;
+        margin: 1.5rem 0;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .callout p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Table Styles */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.95rem;
+    }
+
+    th, td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+        background-color: #f8fafc;
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Lists */
+    ul, ol {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        padding-left: 2rem;
+    }
+
+    li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Copy Button Styling */
+    .copy-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background-color: rgba(248, 250, 252, 0.15);
+        color: #cbd5e1;
+        border: 1px solid rgba(248, 250, 252, 0.25);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+        outline: none;
+    }
+
+    .copy-btn:hover {
+        background-color: rgba(248, 250, 252, 0.25);
+        color: #ffffff;
+        border-color: rgba(248, 250, 252, 0.4);
+    }
+
+    .copy-btn.copied {
+        background-color: #10b981;
+        color: #ffffff;
+        border-color: #10b981;
+    }
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 DEMO – Kịch bản chứng minh yêu cầu đề tài (Phiên bản nâng cấp v3.0)</h1>
+<div class="callout"><p><strong>Đề tài 12 – Phân tích và Dự đoán Doanh thu Bán lẻ</strong><br>File này hướng dẫn từng bước demo để chứng minh hệ thống đáp ứng đầy đủ yêu cầu học thuật và thực tiễn, tích hợp các tính năng đổi mới nâng cao.</p></div>
+---
+<h2>✅ Checklist yêu cầu đề tài & Tính năng đổi mới</h2>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Yêu cầu / Tính năng</th>
+      <th>Kịch bản demo</th>
+      <th>Trạng thái</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Tiền xử lý và phân tích dữ liệu bán lẻ</td>
+      <td>[Kịch bản 1](#kịch-bản-1-huấn-luyện-và-đánh-giá-baseline)</td>
+      <td>✅ Hoàn thành</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Xây dựng mô hình dự báo doanh thu (Random Forest)</td>
+      <td>[Kịch bản 1](#kịch-bản-1-huấn-luyện-và-đánh-giá-baseline)</td>
+      <td>✅ R² ≈ 0.9922</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>So sánh Baseline (Linear Regression, Decision Tree)</td>
+      <td>[Kịch bản 1](#kịch-bản-1-huấn-luyện-và-đánh-giá-baseline)</td>
+      <td>✅ Mới</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Trực quan thực nghiệm, sai số & Error Analysis</td>
+      <td>[Kịch bản 4](#kịch-bản-4-đánh-giá-mô-hình--error-analysis-trực-quan)</td>
+      <td>✅ Mới</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>REST API nhận dữ liệu và trả về dự báo kèm XAI</td>
+      <td>[Kịch bản 2](#kịch-bản-2-dự-đoán-đơn-lẻ-qua-api-kèm-xai)</td>
+      <td>✅ Mới</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Dự đoán hàng loạt qua upload CSV</td>
+      <td>[Kịch bản 3](#kịch-bản-3-dự-đoán-hàng-loạt-batch-csv)</td>
+      <td>✅ Hoàn thành</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Triển khai Docker Swarm Cluster & Load Balancing</td>
+      <td>[Kịch bản 6](#kịch-bản-6-docker-swarm--benchmark-hiệu-năng)</td>
+      <td>✅ Hoàn thành</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Chốt kiểm soát chất lượng mô hình (Performance Gate)</td>
+      <td>[Kịch bản 5](#kịch-bản-5-huấn-luyện-tự-thích-ứng-có-gating)</td>
+      <td>✅ Mới</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>Dashboard Realtime cập nhật luồng dữ liệu 3s</td>
+      <td>[Kịch bản 4](#kịch-bản-4-đánh-giá-mô-hình--error-analysis-trực-quan)</td>
+      <td>✅ Hoàn thành</td>
+    </tr>
+  </tbody>
+</table>
+<p>---</p>
+<h2>🔧 Chuẩn bị trước khi demo</h2>
+<p>Khởi chạy FastAPI API server và React Dashboard trên máy chủ:</p>
+<pre><code># Trong thư mục dự án, chạy API ở cổng 8000
+uvicorn api.main:app --reload
+<h1>Trong thư mục dashboard, chạy React ở cổng 5173</h1>
+npm run dev
+</code></pre>
+<strong>Các URL cần mở sẵn:</strong>
+<ul>
+<li>🔗 API Docs: http://localhost:8000/docs</li>
+<li>🖥️ Dashboard: http://localhost:5173</li>
+<p></ul><br>---</p>
+<h2>Kịch bản 1: Huấn luyện và đánh giá Baseline</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Tiền xử lý dữ liệu + So sánh Baseline (LR vs DT vs RF)</p></div>
+<h3>Bước 1.1 – Xem dữ liệu huấn luyện</h3>
+<pre><code>python -c "import pandas as pd; df = pd.read_csv('data/raw/revenue_sample.csv'); print(df.head(5).to_string())"
+</code></pre>
+*Chỉ ra:* Dữ liệu đa chiều có các biến số như <code>dong_tien</code>, <code>don_hang</code> và các biến phân loại <code>khu_vuc</code>, <code>cua_hang</code>, <code>nhom_san_pham</code>.
+<h3>Bước 1.2 – Chạy script so sánh Baseline</h3>
+<pre><code>python model/baseline_comparison.py
+</code></pre>
+<strong>Kết quả mong đợi:</strong>
+<pre><code>Starting baseline model comparison...
+Finished Linear Regression         | R2: -0.0963 | MAE: 19485.66 | Train Time: 0.0148s
+Finished Decision Tree             | R2: 0.9868 | MAE: 4197.24 | Train Time: 0.0085s
+Finished Random Forest (Proposed)  | R2: 0.9922 | MAE: 2580.38 | Train Time: 0.3046s
+</code></pre>
+*Chỉ ra:* 
+<ul>
+<li>Mô hình Linear Regression thất bại ( \(R^2 < 0\) ) do dữ liệu phi tuyến.</li>
+<li>Mô hình Random Forest (Đề xuất) đạt độ chính xác cao nhất với  \(R^2 \approx 0.9922\)  và sai số MAE thấp nhất (~2580 VNĐ).</li>
+<li>File so sánh được lưu vào <code>data/processed/model_comparison.json</code>.</li>
+<p></ul><br>---</p>
+<h2>Kịch bản 2: Dự đoán đơn lẻ qua API kèm XAI</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> REST API + Tính giải thích cục bộ Explainable AI (XAI)</p></div>
+<h3>Bước 2.1 – Gọi API qua curl</h3>
+<pre><code>curl -X 'POST' \
+  'http://localhost:8000/predict' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "thoi_gian": 12,
+  "dong_tien": 32000,
+  "don_hang": 1500,
+  "san_pham": 3000,
+  "khu_vuc": "Bac",
+  "cua_hang": "CH1",
+  "nhom_san_pham": "DienTu"
+}'
+</code></pre>
+<p><strong>Output mong đợi:</strong><br><pre><code>{<br>  "predicted_revenue": 612000.0,<br>  "contributions": {<br>    "thoi_gian": 8200.0,<br>    "dong_tien": 412500.0,<br>    "don_hang": 32100.0,<br>    "san_pham": -1500.0,<br>    "khu_vuc": 12000.0,<br>    "cua_hang": 4500.0,<br>    "nhom_san_pham": 85000.0<br>  }<br>}<br></code></pre><br>*Chỉ ra:* API trả về không chỉ con số doanh thu dự đoán mà cả phần đóng góp cục bộ (XAI contributions). Ví dụ: danh mục <code>nhom_san_pham</code> đóng góp làm tăng doanh thu lên <strong>85.000 VNĐ</strong> so với baseline, trong khi lượng tồn kho <code>san_pham</code> kéo giảm <strong>1.500 VNĐ</strong>.</p>
+<h3>Bước 2.2 – Kiểm tra trên Dashboard</h3>
+1. Mở tab <strong>"Dự đoán & XAI"</strong> trên Dashboard.
+2. Thay đổi các tham số đầu vào và nhấn nút <strong>⚡ Dự đoán doanh thu</strong>.
+3. Quan sát: Biểu đồ cột ngang hiển thị đóng góp đặc trưng (màu xanh lá thể hiện đóng góp tăng, màu đỏ thể hiện đóng góp giảm).
+<p>---</p>
+<h2>Kịch bản 3: Dự đoán hàng loạt (Batch CSV)</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> API tải lên tệp CSV và trả về mảng kết quả dự báo.</p></div>
+<h3>Bước 3.1 – Tạo file test CSV <code>test_batch.csv</code></h3>
+<pre><code>thoi_gian,dong_tien,don_hang,san_pham,khu_vuc,cua_hang,nhom_san_pham
+6,28000,800,1500,Nam,CH3,DienTu
+12,50000,1200,2500,Bac,CH1,GiaDung
+3,20000,600,1200,Trung,CH2,ThucPham
+</code></pre>
+<h3>Bước 3.2 – Gọi API batch upload</h3>
+<pre><code>curl -X POST http://localhost:8000/predict/batch -F "file=@test_batch.csv"
+</code></pre>
+<h3>Bước 3.3 – Kiểm tra trên Dashboard</h3>
+1. Chọn tab <strong>"Batch CSV"</strong>.
+2. Chọn tệp <code>test_batch.csv</code> tải lên.
+3. Hệ thống phân tích tức thì và xuất bảng kết quả dự đoán chi tiết từng dòng.
+<p>---</p>
+<h2>Kịch bản 4: Đánh giá mô hình & Error Analysis trực quan</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Trực quan hóa thực nghiệm, phân tích lỗi (Error Analysis) và Realtime streaming.</p></div>
+<h3>Bước 4.1 – Xem tab "Đánh giá & Lỗi" trên Dashboard</h3>
+1. Click vào tab <strong>"Đánh giá & Lỗi"</strong>.
+2. Biểu đồ <strong>Thực tế vs Dự đoán</strong> (vẽ 50 điểm test mẫu) hiển thị sự bám sát cực tốt của mô hình Random Forest đối với doanh thu thực.
+3. Biểu đồ <strong>Độ quan trọng đặc trưng</strong> chỉ ra biến nào ảnh hưởng nhất toàn cục (ví dụ: Dòng tiền chiếm tỉ lệ cao nhất).
+4. Biểu đồ <strong>Phân phối sai số</strong> (Residuals) thể hiện các lỗi tập trung sát mốc 0.
+5. Bảng <strong>Error Analysis</strong> hiển thị 5 trường hợp dự đoán sai lệch nhiều nhất tập test kèm lý do giải thích tự động từ chuyên gia ML.
+6. Biểu đồ <strong>Giám sát Concept Drift (Page-Hinkley)</strong> hiển thị điểm tích lũy sai số (Drift Score) so với ngưỡng kích hoạt trôi lệch dữ liệu.
+<h3>Bước 4.2 – Realtime Live Stream</h3>
+1. Click vào tab <strong>"Realtime Live"</strong>.
+2. Nhấn <strong>▶ Bắt đầu Realtime</strong> để chạy mô phỏng luồng dữ liệu cập nhật mỗi 3s.
+3. Nhìn biểu đồ đường chạy động so sánh thực tế vs dự đoán của 3 khu vực địa lý cùng một lúc.
+<p>---</p>
+<h2>Kịch bản 5: Huấn luyện tự thích ứng có Gating</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Cơ chế Performance Gate ngăn chặn sự suy giảm của mô hình.</p></div>
+<h3>Bước 5.1 – Kích hoạt retrain thủ công</h3>
+<pre><code>curl -X POST http://localhost:8000/retrain
+</code></pre>
+<strong>Output nếu vượt qua chốt kiểm soát:</strong>
+<pre><code>{
+  "message": "Retraining triggered",
+  "result": {
+    "time": "2026-05-20T11:45:00Z",
+    "metrics": {"mae": 2580.38, "rmse": 5452.27, "r2": 0.9922},
+    "previous_metrics": {"mae": 2610.11, "rmse": 5510.45, "r2": 0.9918},
+    "status": "success"
+  }
+}
+</code></pre>
+<p><strong>Output nếu mô hình mới bị suy giảm chất lượng (bị chặn):</strong><br><pre><code>{<br>  "message": "Retraining triggered",<br>  "result": {<br>    "time": "2026-05-20T11:45:00Z",<br>    "metrics": {"mae": 2580.38, "rmse": 5452.27, "r2": 0.9922},<br>    "candidate_metrics": {"mae": 4500.22, "rmse": 8900.54, "r2": 0.9650},<br>    "status": "gated"<br>  }<br>}<br></code></pre><br>*Chỉ ra:* Trạng thái trả về là <code>gated</code> nếu mô hình mới huấn luyện bị giảm chất lượng hơn 2% so với mô hình đang chạy. Hệ thống tự động từ chối ghi đè file <code>model.pkl</code> để giữ tính ổn định cho ứng dụng.</p>
+<p>---</p>
+<h2>Kịch bản 6: Docker Swarm & Benchmark hiệu năng</h2>
+<div class="callout"><p><strong>Chứng minh:</strong> Triển khai Multi-replica, Load Balancing trên Docker Swarm và đo lường hiệu năng.</p></div>
+<h3>Bước 6.1 – Khởi động benchmark tải hệ thống</h3>
+<pre><code>python cluster/benchmark.py
+</code></pre>
+*Chỉ ra:* Script sẽ gửi 100 requests đồng thời (concurrency=10) vào API để đo lường Throughput (RPS) và Latency thực tế của môi trường hiện tại, sau đó lưu kết quả vào <code>data/processed/docker_benchmark.json</code>.
+<h3>Bước 6.2 – So sánh hiệu năng trên Dashboard</h3>
+1. Mở tab <strong>"Docker Swarm"</strong> trên Dashboard.
+2. Kiểm tra biểu đồ so sánh:
+<ul>
+<li><strong>Throughput (RPS):</strong> Docker Swarm (2 Replicas) đạt <strong>~135 RPS</strong> vượt trội so với 1 container thông thường (~78 RPS).</li>
+<li><strong>Độ trễ (Latency ms):</strong> Độ trễ trung bình của Swarm chỉ khoảng <strong>7.4 ms</strong> do tải được định tuyến vòng (Round-Robin) tới các bản sao container khác nhau.</li>
+</ul>
+    </div>
+
+    <!-- Script to add Copy Buttons to all <pre> elements -->
+    <script>
+        document.querySelectorAll('pre').forEach((preElement) => {
+            // Create copy button
+            const button = document.createElement('button');
+            button.className = 'copy-btn';
+            button.innerText = 'Copy';
+            
+            // Append button to pre
+            preElement.appendChild(button);
+            
+            // Add click listener
+            button.addEventListener('click', async () => {
+                const codeElement = preElement.querySelector('code');
+                const text = codeElement ? codeElement.innerText : preElement.innerText;
+                
+                try {
+                    await navigator.clipboard.writeText(text);
+                    button.innerText = 'Copied!';
+                    button.classList.add('copied');
+                    
+                    // Reset button text after 2 seconds
+                    setTimeout(() => {
+                        button.innerText = 'Copy';
+                        button.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

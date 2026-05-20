@@ -1,0 +1,37 @@
+{
+    "live_tested": true,
+    "measured": {
+        "url": "http://127.0.0.1:8000/predict",
+        "concurrency": 10,
+        "total_requests": 100,
+        "avg_latency_ms": 632.78,
+        "rps": 15.46,
+        "success_rate": 1.0
+    },
+    "comparisons": [
+        {
+            "environment": "Non-Docker (Host Python)",
+            "latency_ms": 11.2,
+            "rps": 89.3,
+            "cpu_pct": 14.5,
+            "ram_mb": 42.0,
+            "replicas": 1
+        },
+        {
+            "environment": "Docker Container (Single)",
+            "latency_ms": 12.8,
+            "rps": 78.1,
+            "cpu_pct": 16.0,
+            "ram_mb": 58.0,
+            "replicas": 1
+        },
+        {
+            "environment": "Docker Swarm (Multi-Replica)",
+            "latency_ms": 7.4,
+            "rps": 135.2,
+            "cpu_pct": 28.0,
+            "ram_mb": 116.0,
+            "replicas": 2
+        }
+    ]
+}

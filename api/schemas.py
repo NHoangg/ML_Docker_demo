@@ -23,3 +23,4 @@ class RetailSalesData(BaseModel):
 
 class RevenuePrediction(BaseModel):
     predicted_revenue: float
+    contributions: dict[str, float] = Field(default_factory=dict, description="Đóng góp đặc trưng cục bộ (XAI)")

@@ -114,41 +114,92 @@ def run_training(
     data_path: str = "data/raw/revenue_sample.csv",
     model_out: str = "model/model.pkl",
     target: str = TARGET_COLUMN,
-) -> dict[str, float]:
+) -> dict:
     """Callable entry-point used by the API scheduler for auto-retraining."""
     csv_path = Path(data_path)
     model_path = Path(model_out)
 
     features, labels = load_dataset(csv_path, target)
+    x_train, x_test, y_train, y_test = train_test_split(
+        features,
+        labels,
+        test_size=0.2,
+        random_state=42,
+    )
+    
     pipeline, metrics = train_model(features, labels)
 
-    model_path.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(
-        {
-            "pipeline": pipeline,
-            "feature_columns": list(features.columns),
-            "categorical_columns": CATEGORICAL_COLUMNS,
-            "target_column": target,
+    current_metrics = None
+    gated = False
+    if model_path.exists():
+        try:
+            current_bundle = joblib.load(model_path)
+            current_pipeline = current_bundle["pipeline"]
+            current_preds = current_pipeline.predict(x_test[current_bundle["feature_columns"]])
+            current_metrics = {
+                "mae": mean_absolute_error(y_test, current_preds),
+                "rmse": mean_squared_error(y_test, current_preds) ** 0.5,
+                "r2": r2_score(y_test, current_preds),
+            }
+            # Gate if candidate R2 is significantly lower than current model R2
+            if metrics["r2"] < current_metrics["r2"] - 0.02:
+                gated = True
+        except Exception as e:
+            print(f"Could not load or evaluate existing model: {e}")
+
+    if not gated:
+        # Calculate feature baselines (mean for numerical, mode for categorical)
+        baselines = {}
+        for col in features.columns:
+            if col in CATEGORICAL_COLUMNS:
+                baselines[col] = features[col].mode()[0]
+            else:
+                baselines[col] = float(features[col].mean())
+
+        model_path.parent.mkdir(parents=True, exist_ok=True)
+        joblib.dump(
+            {
+                "pipeline": pipeline,
+                "feature_columns": list(features.columns),
+                "categorical_columns": CATEGORICAL_COLUMNS,
+                "target_column": target,
+                "metrics": metrics,
+                "baselines": baselines,
+            },
+            model_path,
+        )
+        return {
+            "status": "success",
             "metrics": metrics,
-        },
-        model_path,
-    )
-    return metrics
+            "previous_metrics": current_metrics,
+        }
+    else:
+        return {
+            "status": "gated",
+            "metrics": current_metrics,
+            "candidate_metrics": metrics,
+        }
 
 
 def main() -> None:
     args = parse_args()
-    metrics = run_training(
+    result = run_training(
         data_path=args.data,
         model_out=args.model_out,
         target=args.target,
     )
 
-    print("Training complete")
+    status = result["status"]
+    metrics = result["metrics"]
+    print(f"Training run finished with status: {status}")
     print(f"MAE:      {metrics['mae']:.2f}")
     print(f"RMSE:     {metrics['rmse']:.2f}")
     print(f"R2 Score: {metrics['r2']:.4f}")
-    print(f"Saved model: {args.model_out}")
+    if status == "gated":
+        cand = result["candidate_metrics"]
+        print(f"Candidate model (rejected): R2 = {cand['r2']:.4f}, MAE = {cand['mae']:.2f}")
+    else:
+        print(f"Saved model: {args.model_out}")
 
 
 if __name__ == "__main__":
